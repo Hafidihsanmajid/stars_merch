@@ -13,9 +13,7 @@ import {
   Banknote, 
   ArrowRight, 
   Printer, 
-  ShoppingBag,
-  Truck,
-  ShieldCheck
+  ShoppingBag
 } from 'lucide-react';
 import { OrderDetail, PaymentInstructions } from '@/types/api';
 import { api } from '@/lib/api';

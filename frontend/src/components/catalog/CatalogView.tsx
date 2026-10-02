@@ -8,11 +8,9 @@ import {
   Search, 
   X, 
   ArrowUpDown, 
-  SlidersHorizontal, 
   ShoppingBag, 
   Eye, 
   PackageSearch,
-  Sparkles,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';

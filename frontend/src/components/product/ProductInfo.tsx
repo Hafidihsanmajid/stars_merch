@@ -8,12 +8,10 @@ import {
   Ruler, 
   Plus, 
   Minus, 
-  Check, 
   Truck, 
   RotateCcw, 
   ShieldCheck, 
   AlertCircle,
-  Sparkles,
   ChevronDown,
   ChevronUp
 } from 'lucide-react';

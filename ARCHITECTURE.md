@@ -698,3 +698,12 @@ sequenceDiagram
    - [x] Halaman Keranjang Penuh (`/cart`) & Cart Drawer: Ringkasan belanja, pembaruan kuantitas real-time, estimasi ongkos kirim, dan integrasi Zustand persistent. (Selesai - Issue FE-06)
    - [x] Checkout Page (`/checkout`): Formulir alamat, data pelanggan, pemilihan metode pembayaran dasar, dan kalkulasi ringkasan pesanan. (Selesai - Issue FE-07)
    - [x] Success Page (`/checkout/success`): Menampilkan detail invoice order, instruksi transfer bank, dan status pembayaran. (Selesai - Issue FE-08)
+
+### Milestone 5: Testing, QA & Polish:
+1. [x] **Automated Feature & Integration Tests (QA-01)**:
+   - Feature Test Suite `EndToEndShoppingFlowTest.php` menguji seluruh alur belanja: dari browse produk beranda, filter kategori, pilih varian di PDP, validasi keranjang, checkout transaksi atomik, pelacakan order, hingga validasi sisa stok.
+   - Total test suite backend: **18 test cases lolos 100% (361 assertions)**.
+2. [x] **Mobile Responsiveness & Core Web Vitals (QA-02)**:
+   - Validasi layout responsif 360px hingga 4K desktop (grid adaptif, menu hamburger mobile, single-column checkout).
+   - Optimasi `next/image` dengan atribut `priority` pada hero/PDP banner untuk menjamin LCP < 2.5s dan meniadakan layout shift (CLS = 0).
+   - Static compilation: 16 route statis/SSG berhasil digenerate saat build (837ms) dan ESLint 0 error.

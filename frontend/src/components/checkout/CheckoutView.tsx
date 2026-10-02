@@ -16,7 +16,6 @@ import {
   AlertCircle,
   Lock,
   ShoppingBag,
-  Sparkles,
   Tag
 } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
@@ -190,9 +189,8 @@ export default function CheckoutView() {
       } else {
         setErrorMessage(res.message || 'Gagal memproses checkout. Silakan coba kembali.');
       }
-    } catch (err: unknown) {
+    } catch {
       // In case backend is offline or returns error
-      const errorObj = err as { message?: string };
       // Fallback mock success order for seamless UI flow
       const mockOrderNumber = `STM-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
 

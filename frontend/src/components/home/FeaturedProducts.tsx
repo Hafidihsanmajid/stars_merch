@@ -91,7 +91,7 @@ const FALLBACK_FEATURED_PRODUCTS: ProductListItem[] = [
 
 export default function FeaturedProducts() {
   const [products, setProducts] = useState<ProductListItem[]>(FALLBACK_FEATURED_PRODUCTS);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const { addItem } = useCartStore();
 
   useEffect(() => {
