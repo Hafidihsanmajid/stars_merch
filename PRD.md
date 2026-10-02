@@ -455,7 +455,7 @@ Semua endpoint admin diawali dengan prefix `/api/v1/admin/`. Endpoint manajemen 
 * [x] **Issue FE-09**: Halaman Login Admin (`/admin/login`), State Autentikasi Admin via Zustand/Cookie, dan Protected Route Guard. (Selesai)
 * [x] **Issue FE-10**: Dashboard Admin Produk (`/admin/products`) & Formulir Tambah Produk Baru (`/admin/products/new`) dengan visual variant matrix builder. (Selesai)
 * [x] **Issue QA-03**: Automated Feature Tests Backend Admin API & Verifikasi Penambahan Produk Baru Muncul Real-time di Katalog Storefront. (Selesai)
-* [ ] **Issue FE-11**: Implementasi Tombol Login di Website Utama (Storefront Navbar & Footer) dengan Indikator Status Sesi (Tamu / Admin).
+* [x] **Issue FE-11**: Implementasi Tombol Login di Website Utama (Storefront Navbar & Footer) dengan Indikator Status Sesi (Tamu / Admin). (Selesai)
 
 ---
 
@@ -649,6 +649,22 @@ Semua endpoint admin diawali dengan prefix `/api/v1/admin/`. Endpoint manajemen 
 2. **Kesehatan Test Suite Menyeluruh**:
    - Seluruh automated feature & unit test suite backend: **39 test cases lolos 100% (731 assertions)** tanpa kegagalan.
    - Build frontend Next.js 16 (`npm run build`) lolos 100% dengan 20 rute aplikasi.
+
+#### P. Integrasi Tombol Login Storefront & Indikator Status Sesi Admin (Issue FE-11)
+1. **Navigasi Desktop Storefront (`src/components/layout/Navbar.tsx`)**:
+   - Menghadirkan tombol akses login interaktif di area aksi navbar (bersebelahan dengan Size Guide dan ikon keranjang belanja).
+   - Terintegrasi reaktif dengan `useAdminAuthStore`:
+     - **Status Tamu / Belum Login**: Menampilkan tombol "Masuk" dengan ikon `User` (`lucide-react`) yang mengarahkan ke formulir autentikasi `/admin/login`.
+     - **Status Admin Terotentikasi**: Menampilkan badge elegan bernuansa emerald dengan ikon `ShieldCheck` bertuliskan "Portal Admin" dan tooltip nama admin aktif yang mengarahkan langsung ke inventaris produk `/admin/products`.
+   - Menggunakan state `mounted` dan inisialisasi asinkron `checkAuth()` untuk menjamin bebas dari *hydration mismatch* antara SSR dan client render.
+2. **Mobile Drawer Navigation (`src/components/layout/Navbar.tsx`)**:
+   - Menambahkan section pembatas terpisah di dalam menu drawer mobile storefront.
+   - Menyediakan tautan "Login Admin / Staf" (tamu) atau panel status "Portal Admin" dengan nama akun aktif bagi staf terotentikasi.
+3. **Footer Storefront Quick Access (`src/components/layout/Footer.tsx`)**:
+   - Menambahkan tautan "Admin Portal" dengan ikon `ShieldCheck` di kolom "Informasi Brand" etalase publik untuk mempermudah akses staf backoffice tanpa mengganggu estetika pelanggan.
+4. **Verifikasi Kompilasi & Kualitas**:
+   - Build Next.js 16 (`npm run build`) sukses 100% men-generate 20 rute aplikasi tanpa error.
+   - Linter audit (`npm run lint`): 0 error pada seluruh kode antarmuka.
 
 
 

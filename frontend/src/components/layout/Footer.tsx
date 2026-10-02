@@ -236,6 +236,12 @@ export default function Footer() {
                   Syarat & Ketentuan
                 </Link>
               </li>
+              <li>
+                <Link href="/admin/products" className="flex items-center gap-1.5 hover:text-white transition-colors group">
+                  <ShieldCheck className="h-3.5 w-3.5 text-zinc-500 group-hover:text-emerald-400 transition-colors" />
+                  <span>Admin Portal</span>
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

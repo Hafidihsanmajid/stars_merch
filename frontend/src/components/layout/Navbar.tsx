@@ -3,15 +3,17 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShoppingBag, Search, Menu, X, Sparkles, Ruler } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, Sparkles, Ruler, User, ShieldCheck } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
 import { useSizeChartStore } from '@/store/useSizeChartStore';
+import { useAdminAuthStore } from '@/store/useAdminAuthStore';
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { getTotalItems, openDrawer } = useCartStore();
   const { open: openSizeChart } = useSizeChartStore();
+  const { isAuthenticated, user, isInitialized, checkAuth } = useAdminAuthStore();
 
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -20,7 +22,10 @@ export default function Navbar() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (!isInitialized) {
+      checkAuth();
+    }
+  }, [isInitialized, checkAuth]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -159,6 +164,27 @@ export default function Navbar() {
               <span>Size Guide</span>
             </button>
 
+            {/* Admin Portal / Login Action */}
+            {mounted && isAuthenticated ? (
+              <Link
+                href="/admin/products"
+                title={`Admin Portal (${user?.name || 'Staf'})`}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors"
+              >
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span className="hidden sm:inline">Portal Admin</span>
+              </Link>
+            ) : (
+              <Link
+                href="/admin/login"
+                title="Masuk / Login Admin"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 transition-colors"
+              >
+                <User className="h-3.5 w-3.5 text-zinc-500" />
+                <span className="hidden sm:inline">Masuk</span>
+              </Link>
+            )}
+
             {/* Shopping Cart Button with Dynamic Badge */}
             <button
               type="button"
@@ -222,6 +248,33 @@ export default function Navbar() {
               <Ruler className="h-4 w-4 text-zinc-400" />
               Panduan Ukuran (Size Guide)
             </button>
+
+            <div className="pt-2 mt-1 border-t border-zinc-200 dark:border-zinc-800">
+              {mounted && isAuthenticated ? (
+                <Link
+                  href="/admin/products"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <span>Portal Admin</span>
+                  </div>
+                  <span className="text-xs font-normal text-emerald-600 dark:text-emerald-400">
+                    {user?.name || 'Aktif'}
+                  </span>
+                </Link>
+              ) : (
+                <Link
+                  href="/admin/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                >
+                  <User className="h-4 w-4 text-zinc-400" />
+                  <span>Login Admin / Staf</span>
+                </Link>
+              )}
+            </div>
           </nav>
         </div>
       )}

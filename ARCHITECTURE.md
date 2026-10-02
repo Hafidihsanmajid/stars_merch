@@ -914,7 +914,7 @@ sequenceDiagram
 3. [x] **Issue FE-09**: Halaman Login Admin (`/admin/login`), State Autentikasi Admin (Zustand/Cookie), dan Protected Route Guard. (Selesai)
 4. [x] **Issue FE-10**: Dashboard Admin Produk (`/admin/products`) & Formulir Tambah Produk Baru (`/admin/products/new`) dengan visual variant matrix builder. (Selesai)
 5. [x] **Issue QA-03**: Automated Feature Tests Backend Admin API & Verifikasi Penambahan Produk Baru Muncul Real-time di Katalog Storefront. (Selesai)
-6. [ ] **Issue FE-11**: Integrasi Tombol Login di Website Utama (Storefront Navbar & Footer) dengan Indikator Status Sesi (Tamu / Admin).
+6. [x] **Issue FE-11**: Integrasi Tombol Login di Website Utama (Storefront Navbar & Footer) dengan Indikator Status Sesi (Tamu / Admin). (Selesai)
 
 * *Catatan Teknis Arsitektur (Issue BE-06)*:
   - Penambahan kolom `role` (default: `'admin'`) pada tabel `users` via migration `2026_10_02_000008_add_role_to_users_table.php`.
@@ -961,6 +961,14 @@ sequenceDiagram
     8. Pencabutan token Sanctum (`POST /api/v1/admin/logout`) dan penolakan 401 Unauthorized.
   - Total automated test suite backend: **39 test cases lolos 100% (731 assertions)**.
   - Validasi build produksi frontend: 20 route statis/SSG berhasil digenerate dalam 1176ms.
+
+* *Catatan Teknis Arsitektur (Issue FE-11)*:
+  - Integrasi akses otentikasi admin pada etalase toko publik (`src/components/layout/Navbar.tsx` & `src/components/layout/Footer.tsx`).
+  - Navbar desktop: menghadirkan tombol "Masuk" (`User` icon) bagi pengunjung/tamu yang mengarahkan ke `/admin/login`, atau badge aktif "Portal Admin" (`ShieldCheck` icon) bernuansa emerald bagi staf yang telah login yang mengarahkan langsung ke `/admin/products`.
+  - Sinkronisasi status sesi asinkron berbasis Zustand store (`useAdminAuthStore.checkAuth()`) dan proteksi render dua tahap (`mounted`) untuk mencegah isu *hydration mismatch*.
+  - Drawer navigasi mobile: menambahkan panel navigasi otentikasi di bawah panduan ukuran dengan nama staf aktif saat terotentikasi.
+  - Footer storefront: menambahkan tautan cepat "Admin Portal" dengan ikon `ShieldCheck` di bawah kategori Informasi Brand.
+  - Kompilasi produksi Next.js 16 (`npm run build`) sukses 100% (20 route statis/SSG) dan ESLint 0 error.
 
 
 
