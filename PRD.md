@@ -1,9 +1,9 @@
 # Product Requirements Document (PRD)
 ## Project: Stars Merch Web Platform
-**Document Version:** 1.0.0  
+**Document Version:** 1.1.0  
 **Author:** Supervisor Agent (Lead System Architect)  
-**Status:** Approved / Ready for Implementation  
-**Target Delivery:** MVP (Minimum Viable Product)  
+**Status:** Approved / Extended for Admin Portal  
+**Target Delivery:** MVP & Phase 1.1 (Storefront & Admin Product Management)  
 
 ---
 
@@ -12,12 +12,13 @@
 ### 1.1 Visi Produk
 **Stars Merch** adalah platform e-commerce direct-to-consumer (D2C) untuk clothing brand modern. Platform ini dirancang untuk memberikan pengalaman berbelanja yang cepat, responsif, dan estetik dengan fokus utama pada produk pakaian (t-shirt, hoodie, jaket, dan aksesori merchandise).
 
-### 1.2 Tujuan MVP
+### 1.2 Tujuan MVP & Rilis v1.1.0
 * Menghadirkan identitas brand yang kuat melalui Halaman Utama (Hero Section).
 * Menyediakan navigasi katalog pakaian yang intuitif dengan pemfilteran berbasis kategori.
 * Menyajikan halaman detail produk (PDP) interaktif dengan pemilihan ukuran (*size*) dan warna (*color*).
 * Menyediakan keranjang belanja (*shopping cart*) yang persisten di sisi klien.
 * Mengimplementasikan alur checkout dasar yang andal untuk memproses pesanan dan mencatatnya ke database backend.
+* **[v1.1.0] Admin Portal & Manajemen Produk**: Menyediakan portal terproteksi bagi admin untuk login aman (Laravel Sanctum) dan menambahkan produk pakaian baru (termasuk galeri foto, varian ukuran/warna HEX, penetapan harga, dan kuantitas stok fisik) langsung ke katalog toko secara realtime.
 
 ---
 
@@ -114,6 +115,38 @@ flowchart LR
   * Backend membuat nomor invoice unik (misal: `STM-202610-001`).
 * **FR-5.5 Halaman Konfirmasi Pesanan (Success Page)**:
   * Menampilkan nomor pesanan, detail rekening pembayaran (jika transfer bank), ringkasan item yang dibeli, dan tombol kembali ke beranda.
+
+### 3.6 Modul 6: Admin Portal & Manajemen Produk Pakaian (Product Management)
+* **FR-6.1 Autentikasi Admin (Login & Session Guard)**:
+  * Halaman login khusus admin di `/admin/login` dengan formulir email, password, dan proteksi kredensial.
+  * Autentikasi berbasis token aman via API Laravel Sanctum yang mengembalikan bearer token untuk sesi admin.
+  * Route Guard / Middleware pada Next.js untuk memproteksi seluruh rute `/admin/*` dari akses publik, serta auto-redirect ke `/admin/login` jika belum terotentikasi.
+  * Tombol Logout di header admin untuk mencabut (*revoke*) token aktif.
+* **FR-6.2 Dashboard Manajemen Produk Admin (`/admin/products`)**:
+  * Menampilkan tabel inventaris seluruh katalog pakaian dengan thumbnail gambar utama, nama produk, kategori, harga dasar, akumulasi total stok seluruh varian, dan status publikasi (`Active` / `Draft`).
+  * Filter cepat berdasarkan kategori dan pencarian nama produk.
+  * Tombol navigasi aksi: Tambah Produk Baru, Edit, atau Toggle status aktif produk.
+* **FR-6.3 Formulir Tambah Produk Baru (`/admin/products/new`)**:
+  * **Informasi Produk**:
+    * Nama Produk (otomatis men-generate slug URL ramah SEO).
+    * Dropdown Kategori (terintegrasi dinamis dengan API kategori: *Oversized T-Shirts*, *Hoodies & Sweaters*, *Pants & Cargo*, *Accessories*).
+    * Deskripsi Produk (material bahan 100% Cotton, GSM, model potongan boxy/oversized, petunjuk perawatan).
+    * Harga Dasar (`base_price` format IDR).
+    * Checkbox / Toggle: *Publish Immediately* (`is_active`) dan *Featured on Homepage* (`is_featured`).
+  * **Galeri Foto Produk**:
+    * Penambahan multiple gambar foto produk (tampak depan, belakang, close-up bahan).
+    * Penentuan gambar primer (`is_primary`) untuk thumbnail etalase katalog.
+    * Input teks alternatif (*alt text*) untuk optimasi aksesibilitas dan SEO.
+  * **Generator & Matriks Varian Pakaian (Size & Color Matrix)**:
+    * Pilihan ukuran fleksibel: `S`, `M`, `L`, `XL`, `XXL`.
+    * Nama warna (misal: *Cosmic Black*, *Vintage Charcoal*, *Sand Beige*) dan kode HEX visual swatch (misal: `#1E1E24`).
+    * Pembuatan SKU unik otomatis (format: `STM-{SLUG}-{COLOR}-{SIZE}`).
+    * Tambahan harga per varian (`additional_price`, default `0`).
+    * Input jumlah kuantitas stok fisik awal (`stock_quantity`) per kombinasi SKU.
+* **FR-6.4 Integritas Penyimpanan & Validasi Atomik**:
+  * Backend memvalidasi integritas data master, gambar, dan varian secara menyeluruh (mencegah SKU kembar atau kuantitas negatif).
+  * Penyimpanan atomik menggunakan `DB::transaction` (memastikan tabel `products`, `product_images`, dan `product_variants` tersimpan utuh bersamaan).
+  * Produk baru yang berhasil disimpan langsung terbit dan dapat dicari di katalog publik (`/catalog`) serta dapat dimasukkan ke keranjang belanja oleh pelanggan.
 
 ---
 
@@ -258,6 +291,116 @@ Semua endpoint backend Laravel diawali dengan prefix `/api/v1/`.
 * `GET /api/v1/orders/{order_number}`
   * **Response**: Informasi detail status pesanan untuk halaman konfirmasi.
 
+### 5.4 Endpoint Admin (Autentikasi & Manajemen Produk)
+
+Semua endpoint admin diawali dengan prefix `/api/v1/admin/`. Endpoint manajemen produk wajib menyertakan header `Authorization: Bearer <sanctum_token>`.
+
+#### 1. Login Admin
+* `POST /api/v1/admin/login`
+  * **Request Body**:
+    ```json
+    {
+      "email": "admin@starsmerch.com",
+      "password": "secretpassword"
+    }
+    ```
+  * **Response (200 OK)**:
+    ```json
+    {
+      "success": true,
+      "message": "Login berhasil.",
+      "data": {
+        "token": "1|sanctum_auth_token_string_here",
+        "user": {
+          "id": 1,
+          "name": "Admin Stars Merch",
+          "email": "admin@starsmerch.com",
+          "role": "admin"
+        }
+      }
+    }
+    ```
+
+#### 2. Profil Admin & Logout
+* `GET /api/v1/admin/me`: Mengecek keabsahan sesi login aktif.
+* `POST /api/v1/admin/logout`: Mencabut (*revoke*) token aktif pengguna.
+
+#### 3. Tambah Produk Baru (Create Product with Images & Variants)
+* `POST /api/v1/admin/products`
+  * **Headers**: `Authorization: Bearer <token>`, `Accept: application/json`
+  * **Request Body**:
+    ```json
+    {
+      "category_id": 1,
+      "name": "Stars Cyberpunk Acid Hoodie",
+      "description": "Heavyweight French Terry Cotton 400 GSM dengan grafis streetwear cyberpunk.",
+      "base_price": 389000,
+      "is_featured": true,
+      "is_active": true,
+      "images": [
+        {
+          "image_url": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2",
+          "alt_text": "Stars Cyberpunk Acid Hoodie Tampak Depan",
+          "is_primary": true,
+          "sort_order": 0
+        },
+        {
+          "image_url": "https://images.unsplash.com/photo-1556905055-8f358a7a47b3",
+          "alt_text": "Stars Cyberpunk Acid Hoodie Tampak Belakang",
+          "is_primary": false,
+          "sort_order": 1
+        }
+      ],
+      "variants": [
+        {
+          "size": "M",
+          "color_name": "Acid Washed Grey",
+          "color_hex": "#4A4E69",
+          "sku": "STM-HD-CYBER-GRY-M",
+          "additional_price": 0,
+          "stock_quantity": 25
+        },
+        {
+          "size": "L",
+          "color_name": "Acid Washed Grey",
+          "color_hex": "#4A4E69",
+          "sku": "STM-HD-CYBER-GRY-L",
+          "additional_price": 0,
+          "stock_quantity": 30
+        },
+        {
+          "size": "XL",
+          "color_name": "Acid Washed Grey",
+          "color_hex": "#4A4E69",
+          "sku": "STM-HD-CYBER-GRY-XL",
+          "additional_price": 15000,
+          "stock_quantity": 15
+        }
+      ]
+    }
+    ```
+  * **Response (201 Created)**:
+    ```json
+    {
+      "success": true,
+      "message": "Produk pakaian dan varian berhasil ditambahkan.",
+      "data": {
+        "id": 11,
+        "name": "Stars Cyberpunk Acid Hoodie",
+        "slug": "stars-cyberpunk-acid-hoodie",
+        "base_price": 389000,
+        "category": { "id": 1, "name": "Hoodies & Sweaters" },
+        "images_count": 2,
+        "variants_count": 3,
+        "total_stock": 70
+      }
+    }
+    ```
+
+#### 4. List Produk Admin (Semua Status)
+* `GET /api/v1/admin/products`
+  * Mendukung pagination, filter `category`, filter status publikasi (`all`, `active`, `draft`), dan kata kunci pencarian `search`.
+
 ---
 
 ## 6. Kebutuhan Non-Fungsional (Non-Functional Requirements)
@@ -300,6 +443,13 @@ Semua endpoint backend Laravel diawali dengan prefix `/api/v1/`.
 ### Milestone 5: Testing, QA & Polish
 * [x] **Issue QA-01**: Pengujian alur belanja *end-to-end* (Pilih baju -> Pilih varian -> Masuk keranjang -> Checkout -> Verifikasi pengurangan stok di SQLite).
 * [x] **Issue QA-02**: Validasi responsivitas mobile & optimasi performa gambar.
+
+### Milestone 6: Admin Portal & Product Management (Laravel Sanctum + Next.js Admin UI)
+* [ ] **Issue BE-06**: Autentikasi Admin Laravel Sanctum, seeder akun admin default, dan middleware proteksi rute `/api/v1/admin/*`.
+* [ ] **Issue BE-07**: REST API Admin Product Management (Store Product dengan gambar & varian atomik via `DB::transaction`, list produk, dan validasi duplikasi SKU).
+* [ ] **Issue FE-09**: Halaman Login Admin (`/admin/login`), State Autentikasi Admin via Zustand/Cookie, dan Protected Route Guard.
+* [ ] **Issue FE-10**: Dashboard Admin Produk (`/admin/products`) & Formulir Tambah Produk Baru (`/admin/products/new`) dengan visual variant matrix builder.
+* [ ] **Issue QA-03**: Automated Feature Tests Backend Admin API & Verifikasi Penambahan Produk Baru Muncul Real-time di Katalog Storefront.
 
 ---
 

@@ -1,8 +1,8 @@
 # Technical Architecture Document
 ## Project: Stars Merch Web Platform
-**Document Version:** 1.0.0  
+**Document Version:** 1.1.0  
 **Author:** Supervisor Agent (Lead System Architect)  
-**Status:** Approved Architecture Draft  
+**Status:** Approved / Extended for Admin Portal  
 **Reference Document:** [PRD.md](file:///D:/stars_merch/PRD.md)  
 
 ---
@@ -11,8 +11,9 @@
 
 Dokumen ini mendefinisikan desain teknis detail untuk platform **Stars Merch**, mencakup:
 1. **Desain Skema Database Relasional (SQLite / Eloquent ORM)** yang dioptimasi untuk performa pencarian katalog dan integritas transaksi checkout.
-2. **Spesifikasi Kontrak RESTful API** antara Backend (Laravel 12) dan Frontend (Next.js 15).
+2. **Spesifikasi Kontrak RESTful API** antara Backend (Laravel 12) dan Frontend (Next.js 16).
 3. **Pola Integrasi & Keamanan Data** untuk alur checkout atomik, validasi stok, serta penanganan error terstandar.
+4. **Arsitektur Autentikasi Admin & Manajemen Inventaris Produk** berbasis token bearer (Laravel Sanctum) dan transaksi atomik multi-tabel (`products`, `product_images`, `product_variants`).
 
 ---
 
@@ -24,6 +25,16 @@ Database menggunakan **SQLite** (`database.sqlite`) dengan dukungan *foreign key
 
 ```mermaid
 erDiagram
+    USERS {
+        INTEGER id PK
+        VARCHAR name
+        VARCHAR email UK
+        VARCHAR password
+        VARCHAR role
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
     CUSTOMERS ||--o{ ORDERS : places
     CATEGORIES ||--o{ PRODUCTS : contains
     PRODUCTS ||--|{ PRODUCT_IMAGES : displays
@@ -288,6 +299,24 @@ Snapshot produk dan varian yang dibeli pada sebuah order (anti-perubahan histori
 * **Index**:
   * `idx_order_items_order` (`order_id`)
   * `idx_order_items_variant` (`product_variant_id`)
+
+---
+
+#### H. Tabel `users`
+Menyimpan akun administrator toko untuk mengelola produk dan katalog di Admin Portal.
+
+| Kolom | Tipe Data | Constraint | Deskripsi |
+| :--- | :--- | :--- | :--- |
+| `id` | `INTEGER` | `PRIMARY KEY AUTOINCREMENT` | ID unik admin |
+| `name` | `VARCHAR(120)` | `NOT NULL` | Nama staf / admin |
+| `email` | `VARCHAR(150)` | `UNIQUE, NOT NULL` | Email untuk autentikasi login |
+| `password` | `VARCHAR(255)` | `NOT NULL` | Hash password (Bcrypt) |
+| `role` | `VARCHAR(30)` | `DEFAULT 'admin', NOT NULL` | Hak akses (`admin`, `superadmin`) |
+| `created_at` | `DATETIME` | `NOT NULL` | Timestamp |
+| `updated_at` | `DATETIME` | `NOT NULL` | Timestamp |
+
+* **Index**:
+  * `idx_users_email` (`email` UNIQUE)
 
 ---
 
@@ -630,7 +659,145 @@ Semua endpoint beroperasi di bawah base URI `/api/v1/` dengan header:
 
 ---
 
-## 4. Mekanisme Integritas Transaksi & Validasi Stok
+### 3.5 Endpoint Admin (Autentikasi & Manajemen Produk)
+
+Semua endpoint admin beroperasi di bawah `/api/v1/admin/`. Endpoint manajemen produk membutuhkan otentikasi Bearer Token Laravel Sanctum (`Authorization: Bearer <token>`).
+
+#### 8. Login Admin
+* **Endpoint**: `POST /api/v1/admin/login`
+* **Deskripsi**: Verifikasi kredensial email dan password staf admin serta menerbitkan API token Sanctum.
+* **Request Body**:
+```json
+{
+  "email": "admin@starsmerch.com",
+  "password": "secretpassword"
+}
+```
+* **Response (200 OK)**:
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Autentikasi berhasil.",
+  "data": {
+    "token": "1|qWbXj...sanctum_token",
+    "admin": {
+      "id": 1,
+      "name": "Admin Stars Merch",
+      "email": "admin@starsmerch.com",
+      "role": "admin"
+    }
+  }
+}
+```
+
+---
+
+#### 9. Logout & Cek Sesi Admin
+* `POST /api/v1/admin/logout` (Menghapus personal access token aktif).
+* `GET /api/v1/admin/me` (Mengambil data profil admin dari token aktif).
+
+---
+
+#### 10. Tambah Produk Pakaian Baru (Create Product with Images & Variants)
+* **Endpoint**: `POST /api/v1/admin/products`
+* **Deskripsi**: Menyimpan produk baru beserta seluruh galeri gambar dan variasi (ukuran, warna, stok) secara atomik via `DB::transaction`.
+* **Headers**: `Authorization: Bearer <token>`, `Accept: application/json`
+* **Request Body**:
+```json
+{
+  "category_id": 1,
+  "name": "Stars Vintage Boxy Tee",
+  "description": "100% 24s Heavyweight Cotton (240 GSM). Potongan boxy-oversized dengan washed finishing vintage.",
+  "base_price": 189000,
+  "is_featured": true,
+  "is_active": true,
+  "images": [
+    {
+      "image_url": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518",
+      "alt_text": "Tampak Depan",
+      "is_primary": true,
+      "sort_order": 0
+    },
+    {
+      "image_url": "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
+      "alt_text": "Tampak Belakang",
+      "is_primary": false,
+      "sort_order": 1
+    }
+  ],
+  "variants": [
+    {
+      "size": "S",
+      "color_name": "Vintage Charcoal",
+      "color_hex": "#2F3542",
+      "sku": "STM-TEE-VINT-CHAR-S",
+      "additional_price": 0,
+      "stock_quantity": 20
+    },
+    {
+      "size": "M",
+      "color_name": "Vintage Charcoal",
+      "color_hex": "#2F3542",
+      "sku": "STM-TEE-VINT-CHAR-M",
+      "additional_price": 0,
+      "stock_quantity": 30
+    },
+    {
+      "size": "L",
+      "color_name": "Vintage Charcoal",
+      "color_hex": "#2F3542",
+      "sku": "STM-TEE-VINT-CHAR-L",
+      "additional_price": 0,
+      "stock_quantity": 25
+    },
+    {
+      "size": "XL",
+      "color_name": "Vintage Charcoal",
+      "color_hex": "#2F3542",
+      "sku": "STM-TEE-VINT-CHAR-XL",
+      "additional_price": 10000,
+      "stock_quantity": 15
+    }
+  ]
+}
+```
+* **Response (201 Created)**:
+```json
+{
+  "success": true,
+  "statusCode": 201,
+  "message": "Produk pakaian dan varian berhasil ditambahkan ke inventaris.",
+  "data": {
+    "id": 9,
+    "name": "Stars Vintage Boxy Tee",
+    "slug": "stars-vintage-boxy-tee",
+    "base_price": 189000,
+    "category": {
+      "id": 1,
+      "name": "Oversized T-Shirts"
+    },
+    "images_count": 2,
+    "variants_count": 4,
+    "total_stock": 90,
+    "is_featured": true,
+    "is_active": true
+  }
+}
+```
+
+---
+
+#### 11. List Produk Admin
+* **Endpoint**: `GET /api/v1/admin/products`
+* **Query Parameters**: `category`, `status` (`all`, `active`, `draft`), `search`, `page`, `per_page`.
+* **Deskripsi**: Menampilkan inventaris seluruh produk beserta akumulasi stok fisik seluruh variannya.
+
+---
+
+## 4. Mekanisme Integritas Transaksi & Keamanan Data
+
+### 4.1 Alur Transaksi Checkout & Validasi Stok (Customer)
 
 Untuk mencegah *race condition* (misal: dua pelanggan checkout varian kaos terakhir secara bersamaan), controller checkout pada Laravel 12 **wajib** mengimplementasikan mekanisme *database transaction* dan *pessimistic locking*:
 
@@ -657,6 +824,39 @@ sequenceDiagram
     API->>DB: INSERT INTO order_items (snapshot data)
     API->>DB: COMMIT TRANSACTION
     API-->>Customer: 201 Created (Order Number + Instruksi Bayar)
+```
+
+---
+
+### 4.2 Alur Transaksi Atomik Penambahan Produk Baru (Admin)
+
+Untuk memastikan konsistensi relasi master produk, galeri gambar, dan varian fisik (mencegah *orphan record* jika terjadi kesalahan duplikasi SKU), penambahan produk admin dibungkus dalam `DB::transaction`:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin as Admin Browser (Next.js)
+    participant API as Admin Product Controller (Laravel)
+    participant DB as SQLite Engine
+
+    Admin->>API: POST /api/v1/admin/products (Bearer Token + Payload)
+    API->>API: Validasi Token Sanctum & Hak Akses Admin
+    API->>API: Validasi Form Request (StoreProductRequest)
+    API->>DB: BEGIN TRANSACTION
+    API->>DB: INSERT INTO products (category_id, name, slug, base_price, ...)
+    loop Untuk Setiap Foto Galeri
+        API->>DB: INSERT INTO product_images (product_id, image_url, is_primary, ...)
+    end
+    loop Untuk Setiap Varian (Size/Color)
+        API->>DB: Check SKU Uniqueness & INSERT INTO product_variants
+    end
+    alt Terjadi Validasi Gagal / Duplikasi SKU
+        API->>DB: ROLLBACK TRANSACTION
+        API-->>Admin: 422 Unprocessable Entity
+    else Berhasil
+        API->>DB: COMMIT TRANSACTION
+        API-->>Admin: 201 Created (Produk Berhasil Ditambahkan)
+    end
 ```
 
 ---
@@ -707,3 +907,10 @@ sequenceDiagram
    - Validasi layout responsif 360px hingga 4K desktop (grid adaptif, menu hamburger mobile, single-column checkout).
    - Optimasi `next/image` dengan atribut `priority` pada hero/PDP banner untuk menjamin LCP < 2.5s dan meniadakan layout shift (CLS = 0).
    - Static compilation: 16 route statis/SSG berhasil digenerate saat build (837ms) dan ESLint 0 error.
+
+### Milestone 6: Admin Portal & Product Management (Laravel Sanctum + Next.js Admin UI):
+1. [ ] **Issue BE-06**: Autentikasi Admin Laravel Sanctum, seeder akun default admin, dan middleware proteksi `/api/v1/admin/*`.
+2. [ ] **Issue BE-07**: REST API Admin Product Management (`POST /api/v1/admin/products` dengan transaksi atomik `DB::transaction`, `GET /api/v1/admin/products`, dan validasi SKU unik).
+3. [ ] **Issue FE-09**: Halaman Login Admin (`/admin/login`), State Autentikasi Admin (Zustand/Cookie), dan Protected Route Guard.
+4. [ ] **Issue FE-10**: Dashboard Admin Produk (`/admin/products`) & Formulir Tambah Produk Baru (`/admin/products/new`) dengan visual variant matrix builder.
+5. [ ] **Issue QA-03**: Automated Feature Tests Backend Admin API & Verifikasi Penambahan Produk Baru Muncul Real-time di Katalog Storefront.
