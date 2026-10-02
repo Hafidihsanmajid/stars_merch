@@ -74,7 +74,8 @@ flowchart LR
 * **FR-1.1 Hero Banner**: Banner visual dinamis dengan *headline* promosi brand, sub-headline, dan tombol Call-to-Action (CTA) "Shop Collection" yang mengarahkan user langsung ke katalog.
 * **FR-1.2 Featured Collections**: Bagian yang menampilkan 3-4 kategori unggulan (misal: *Oversized Tees*, *Hoodies*, *Limited Edition*).
 * **FR-1.3 Value Propositions / USP**: Tiga pilar layanan (Bahan Premium 100% Cotton, Pengiriman Cepat, Garansi Retur Ukuran).
-* **FR-1.4 Footer**: Informasi hak cipta, media sosial, FAQ, dan panduan ukuran (*size chart modal trigger*).
+* **FR-1.4 Footer**: Informasi hak cipta, media sosial, FAQ, panduan ukuran (*size chart modal trigger*), serta tautan akses cepat ke portal admin.
+* **FR-1.5 Tombol Akses Login Website Utama (Main Storefront Login Action)**: Tombol/ikon navigasi login pada navbar website utama (desktop dan menu hamburger mobile) untuk memfasilitasi akses staf/admin ke halaman login (`/admin/login`). Memiliki status interaktif responsif: menampilkan tombol "Login / Masuk" dengan ikon user saat tamu belum terotentikasi, atau beralih menjadi badge "Admin Portal / Dashboard" saat sesi login aktif terdeteksi.
 
 ### 3.2 Modul 2: Katalog Pakaian (Product Catalog & Browsing)
 * **FR-2.1 Grid Produk**: Layout grid responsif (4 kolom desktop, 2 kolom mobile) menampilkan kartu produk: gambar utama, nama produk, kategori, harga dasar, dan tag status (misal: *Best Seller*, *New Arrival*).
@@ -147,6 +148,10 @@ flowchart LR
   * Backend memvalidasi integritas data master, gambar, dan varian secara menyeluruh (mencegah SKU kembar atau kuantitas negatif).
   * Penyimpanan atomik menggunakan `DB::transaction` (memastikan tabel `products`, `product_images`, dan `product_variants` tersimpan utuh bersamaan).
   * Produk baru yang berhasil disimpan langsung terbit dan dapat dicari di katalog publik (`/catalog`) serta dapat dimasukkan ke keranjang belanja oleh pelanggan.
+* **FR-6.5 Tombol Akses Login Terintegrasi pada Website Utama**:
+  * Menghadirkan tombol akses login di Navbar etalase publik (sebelah ikon pencarian/panduan ukuran dan di menu navigasi mobile) dengan ikon user (`Lucide User`).
+  * Integrasi deteksi status otentikasi: ketika belum login mengarahkan ke `/admin/login`; ketika admin telah login menampilkan status akun aktif dan akses sekali-klik ke `/admin/products`.
+  * Penempatan tautan "Admin Portal" di bagian Footer etalase publik untuk aksesibilitas backoffice yang rapi.
 
 ---
 
@@ -450,6 +455,7 @@ Semua endpoint admin diawali dengan prefix `/api/v1/admin/`. Endpoint manajemen 
 * [x] **Issue FE-09**: Halaman Login Admin (`/admin/login`), State Autentikasi Admin via Zustand/Cookie, dan Protected Route Guard. (Selesai)
 * [x] **Issue FE-10**: Dashboard Admin Produk (`/admin/products`) & Formulir Tambah Produk Baru (`/admin/products/new`) dengan visual variant matrix builder. (Selesai)
 * [x] **Issue QA-03**: Automated Feature Tests Backend Admin API & Verifikasi Penambahan Produk Baru Muncul Real-time di Katalog Storefront. (Selesai)
+* [ ] **Issue FE-11**: Implementasi Tombol Login di Website Utama (Storefront Navbar & Footer) dengan Indikator Status Sesi (Tamu / Admin).
 
 ---
 

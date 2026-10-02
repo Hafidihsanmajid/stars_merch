@@ -885,8 +885,8 @@ sequenceDiagram
    - `src/store/useCartStore.ts`: Menyimpan keranjang belanja `{ variantId, productId, name, size, color, price, quantity, image }` tersinkronisasi `localStorage`.
    - `src/store/useSizeChartStore.ts`: *(Perubahan Tambahan)* Mengelola visibility modal panduan ukuran (*Size Chart Modal*) secara terpusat.
 4. [x] **Global Layout & Overlay Components**: (Selesai - Issue FE-02)
-   - `src/components/layout/Navbar.tsx`: Sticky glassmorphism header, responsive mobile drawer, dynamic cart count badge.
-   - `src/components/layout/Footer.tsx`: Brand narrative, navigation links, trigger panduan ukuran.
+   - `src/components/layout/Navbar.tsx`: Sticky glassmorphism header, responsive mobile drawer, dynamic cart count badge, serta tombol akses login / status sesi admin (`useAdminAuthStore`).
+   - `src/components/layout/Footer.tsx`: Brand narrative, navigation links, trigger panduan ukuran, dan tautan akses cepat ke Admin Portal.
    - `src/components/cart/CartDrawer.tsx`: Slide-over drawer keranjang belanja dengan aksi tambah/kurang jumlah dan kalkulasi subtotal realtime.
    - `src/components/modals/SizeChartModal.tsx`: *(Perubahan Tambahan)* Modal ukuran streetwear interaktif (Tees, Hoodies, Pants).
    - `src/lib/utils.ts`: Helper `formatRupiah` dan `cn`.
@@ -914,6 +914,7 @@ sequenceDiagram
 3. [x] **Issue FE-09**: Halaman Login Admin (`/admin/login`), State Autentikasi Admin (Zustand/Cookie), dan Protected Route Guard. (Selesai)
 4. [x] **Issue FE-10**: Dashboard Admin Produk (`/admin/products`) & Formulir Tambah Produk Baru (`/admin/products/new`) dengan visual variant matrix builder. (Selesai)
 5. [x] **Issue QA-03**: Automated Feature Tests Backend Admin API & Verifikasi Penambahan Produk Baru Muncul Real-time di Katalog Storefront. (Selesai)
+6. [ ] **Issue FE-11**: Integrasi Tombol Login di Website Utama (Storefront Navbar & Footer) dengan Indikator Status Sesi (Tamu / Admin).
 
 * *Catatan Teknis Arsitektur (Issue BE-06)*:
   - Penambahan kolom `role` (default: `'admin'`) pada tabel `users` via migration `2026_10_02_000008_add_role_to_users_table.php`.
