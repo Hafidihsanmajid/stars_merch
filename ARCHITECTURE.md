@@ -667,9 +667,12 @@ sequenceDiagram
 1. [x] **Migration & Models**: `Category`, `Product`, `ProductImage`, `ProductVariant`, `Customer`, `Order`, `OrderItem`. (Selesai pada commit `ec1868b`)
 2. [x] **Seeders**: Data demo 8 pakaian lengkap dengan gambar dummy, varian warna/ukuran, dan stok fisik. (Selesai - Issue BE-03)
    * *Catatan Teknis Arsitektur*: Seeder dipecah secara modular (`CategorySeeder.php`, `ProductSeeder.php`, dan `DatabaseSeeder.php`) dengan operasi idempotent `updateOrCreate`.
-3. [ ] **Controllers & Resources**:
-   - `CategoryController.php` -> `CategoryResource.php`
-   - `ProductController.php` -> `ProductResource.php`, `ProductDetailResource.php`
+3. [x] **Catalog & Product REST API**: (Selesai - Issue BE-04)
+   - `CategoryController.php` -> `CategoryResource.php` (`GET /api/v1/categories`)
+   - `ProductController.php` -> `ProductResource.php`, `ProductDetailResource.php` (`GET /api/v1/products`, `GET /api/v1/products/featured`, `GET /api/v1/products/{slug}`)
+   - Konfigurasi CORS `config/cors.php`
+   - Feature Test Suite `CatalogApiTest.php` (8 passed)
+4. [ ] **Cart Validation & Checkout Controller**: (Issue BE-05)
    - `CartValidationController.php`
    - `CheckoutController.php` (dengan `CheckoutRequest.php` untuk validasi input dan `DB::transaction`).
 
@@ -686,9 +689,9 @@ sequenceDiagram
    - `src/components/modals/SizeChartModal.tsx`: *(Perubahan Tambahan)* Modal ukuran streetwear interaktif (Tees, Hoodies, Pants).
    - `src/lib/utils.ts`: Helper `formatRupiah` dan `cn`.
    - `src/app/layout.tsx`: Root layout yang menggabungkan seluruh komponen layout global.
-5. [ ] **UI Views**:
-   - Beranda (`/`): Hero + Featured Products (`GET /api/v1/products/featured`). (Issue FE-03)
-   - Katalog (`/catalog`): Filter kategori, sortir harga, grid produk. (Issue FE-04)
-   - Detail Produk (`/product/[slug]`): Swatch warna, tombol ukuran, live stock guard. (Issue FE-05)
-   - Checkout Page (`/checkout`): Formulir alamat dan pemilihan metode pembayaran dasar. (Issue FE-07)
-   - Success Page (`/checkout/success`): Menampilkan detail invoice order. (Issue FE-08)
+5. **UI Views**:
+   - [x] Beranda (`/`): Hero + Featured Collections + USP + Live Featured Products (`GET /api/v1/products/featured`). (Selesai - Issue FE-03)
+   - [ ] Katalog (`/catalog`): Filter kategori, sortir harga, grid produk. (Issue FE-04)
+   - [ ] Detail Produk (`/product/[slug]`): Swatch warna, tombol ukuran, live stock guard. (Issue FE-05)
+   - [ ] Checkout Page (`/checkout`): Formulir alamat dan pemilihan metode pembayaran dasar. (Issue FE-07)
+   - [ ] Success Page (`/checkout/success`): Menampilkan detail invoice order. (Issue FE-08)

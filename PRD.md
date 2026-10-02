@@ -280,13 +280,13 @@ Semua endpoint backend Laravel diawali dengan prefix `/api/v1/`.
 * [x] **Issue BE-01**: Inisialisasi proyek Laravel 12 & konfigurasi database SQLite.
 * [x] **Issue BE-02**: Pembuatan migration database (`categories`, `products`, `product_images`, `product_variants`, `orders`, `order_items`).
 * [x] **Issue BE-03**: Pembuatan Database Seeder dengan sampel produk pakaian Stars Merch (kaos, hoodie, varian ukuran & warna).
-* [ ] **Issue BE-04**: Implementasi Controller & Resource untuk Product Catalog & Detail API.
+* [x] **Issue BE-04**: Implementasi Controller & Resource untuk Product Catalog & Detail API.
 * [ ] **Issue BE-05**: Implementasi Checkout Controller dengan validasi stok atomik via DB Transaction.
 
 ### Milestone 2: Frontend Foundation & UI Setup (Next.js + Tailwind)
 * [x] **Issue FE-01**: Inisialisasi proyek Next.js dengan Tailwind CSS dan Lucide React.
 * [x] **Issue FE-02**: Setup Global Layout (Navbar dengan badge jumlah keranjang, Footer brand, Cart Drawer, dan Modal Size Chart).
-* [ ] **Issue FE-03**: Implementasi Halaman Utama (Hero Section, Value Proposition, Featured Collections).
+* [x] **Issue FE-03**: Implementasi Halaman Utama (Hero Section, Value Proposition, Featured Collections).
 
 ### Milestone 3: Catalog & Product Detail Integration
 * [ ] **Issue FE-04**: Halaman Katalog Pakaian (Grid Produk, Filter Kategori, Sorting).
@@ -322,3 +322,19 @@ Semua endpoint backend Laravel diawali dengan prefix `/api/v1/`.
    - File `src/app/layout.tsx` diperbarui untuk merender `<Navbar />`, `<CartDrawer />`, dan `<SizeChartModal />` secara konsisten di seluruh route aplikasi dengan styling responsif Tailwind CSS v4.
 4. **Utility Functions**:
    - Ditambahkan `src/lib/utils.ts` berisi formatter mata uang terstandar `formatRupiah()` untuk format angka harga IDR.
+
+#### C. Backend (Issue BE-04)
+1. **RESTful Catalog & Detail APIs**:
+   - Diimplementasikan `CategoryController` dengan `CategoryResource` untuk `GET /api/v1/categories`.
+   - Diimplementasikan `ProductController` dengan `ProductResource` dan `ProductDetailResource` untuk `GET /api/v1/products` (mendukung filter `category`, `search`, sorting `newest`/`price_asc`/`price_desc`, pagination), `GET /api/v1/products/featured`, dan `GET /api/v1/products/{slug}`.
+2. **CORS & Automated Tests**:
+   - Konfigurasi `config/cors.php` untuk mengizinkan origin frontend `http://localhost:3000`.
+   - Dibuat automated feature test suite `tests/Feature/CatalogApiTest.php` dengan 8 skenario pengujian komprehensif (246 assertions, passing 100%).
+
+#### D. Frontend (Issue FE-03)
+1. **Modular Home Components**:
+   - Halaman `src/app/page.tsx` diimplementasikan dengan komponen modular di `src/components/home/`: `HeroSection.tsx`, `ValuePropositions.tsx`, `FeaturedCollections.tsx`, dan `FeaturedProducts.tsx`.
+2. **Optimasi Aset Gambar (next/image)**:
+   - Menambahkan konfigurasi remote patterns `images.unsplash.com` di `next.config.ts`.
+3. **Resilient Data Fetching**:
+   - Komponen `FeaturedProducts` mengintegrasikan API client `api.products.getFeatured()` dengan UI skeleton loading dan error/empty fallback handling.
