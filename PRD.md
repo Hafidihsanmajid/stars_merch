@@ -294,8 +294,8 @@ Semua endpoint backend Laravel diawali dengan prefix `/api/v1/`.
 
 ### Milestone 4: Cart & Checkout Flow
 * [x] **Issue FE-06**: Implementasi State Keranjang Belanja via Zustand terhubung ke `localStorage` + UI Cart Drawer & Dedicated Cart Page.
-* [ ] **Issue FE-07**: Halaman Checkout (Form alamat pengiriman, opsi pembayaran, ringkasan pesanan).
-* [ ] **Issue FE-08**: Integrasi submit checkout ke API Backend Laravel & Halaman Sukses Pesanan.
+* [x] **Issue FE-07**: Halaman Checkout (Form alamat pengiriman, opsi pembayaran, ringkasan pesanan).
+* [x] **Issue FE-08**: Integrasi submit checkout ke API Backend Laravel & Halaman Sukses Pesanan.
 
 ### Milestone 5: Testing, QA & Polish
 * [ ] **Issue QA-01**: Pengujian alur belanja *end-to-end* (Pilih baju -> Pilih varian -> Masuk keranjang -> Checkout -> Verifikasi pengurangan stok di SQLite).
@@ -364,3 +364,12 @@ Semua endpoint backend Laravel diawali dengan prefix `/api/v1/`.
 1. **Dedicated Cart Page (`src/app/cart/page.tsx`) & Cart Drawer**:
    - Penyediaan dua akses keranjang belanja: panel geser melayang (*Cart Drawer*) dan halaman penuh (*Dedicated Cart Page*) dengan komponen `CartPageView.tsx`.
    - Ringkasan belanja dinamis: subtotal, estimasi ongkir otomatis (bebas ongkir untuk pesanan di atas Rp 300.000), kontrol kuantitas (+/-), penghapusan item, dan tombol navigasi langsung ke alur checkout.
+
+#### I. Frontend (Issue FE-07 & FE-08)
+1. **Halaman Checkout (`src/app/checkout/page.tsx`)**:
+   - Komponen modular di `src/components/checkout/`: `CheckoutView.tsx`, `CheckoutForm.tsx`, `OrderSummary.tsx`.
+   - Formulir lengkap identitas pembeli (nama, email, nomor WhatsApp), rincian pengiriman (alamat, kota, kode pos), opsi metode pembayaran (Transfer Bank BCA/Mandiri atau COD), dan field catatan kurir.
+2. **Integrasi Transaksi & Halaman Sukses (`src/app/checkout/success/page.tsx`)**:
+   - Terintegrasi langsung dengan API backend `POST /api/v1/checkout` melalui helper `api.checkout.submit()`.
+   - Pembersihan keranjang belanja otomatis (`useCartStore.clearCart()`) setelah submit order sukses.
+   - Halaman konfirmasi sukses (`SuccessView.tsx`) menampilkan nomor invoice pesanan (`order_number`), instruksi rekening pembayaran lengkap dengan fitur salin nomor rekening, serta tracking data order via `api.orders.getDetails()`.

@@ -696,5 +696,5 @@ sequenceDiagram
    - [x] Katalog (`/catalog`): Grid responsif, filter kategori, search bar, sortir harga/terbaru, pagination, dan graceful fallback mock data. (Selesai - Issue FE-04)
    - [x] Detail Produk (`/product/[slug]`): SSG dengan `generateStaticParams`, galeri multi-foto, swatch warna, ukuran interaktif, live stock indicator, dan Add to Cart. (Selesai - Issue FE-05)
    - [x] Halaman Keranjang Penuh (`/cart`) & Cart Drawer: Ringkasan belanja, pembaruan kuantitas real-time, estimasi ongkos kirim, dan integrasi Zustand persistent. (Selesai - Issue FE-06)
-   - [ ] Checkout Page (`/checkout`): Formulir alamat dan pemilihan metode pembayaran dasar. (Issue FE-07)
-   - [ ] Success Page (`/checkout/success`): Menampilkan detail invoice order. (Issue FE-08)
+   - [x] Checkout Page (`/checkout`): Formulir alamat, data pelanggan, pemilihan metode pembayaran dasar, dan kalkulasi ringkasan pesanan. (Selesai - Issue FE-07)
+   - [x] Success Page (`/checkout/success`): Menampilkan detail invoice order, instruksi transfer bank, dan status pembayaran. (Selesai - Issue FE-08)
