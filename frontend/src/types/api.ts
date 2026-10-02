@@ -208,3 +208,95 @@ export interface OrderDetail {
   order_status: string;
   notes?: string;
 }
+
+// Admin Authentication & Profile Types
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: 'admin' | string;
+}
+
+export interface AdminLoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface AdminLoginResponseData {
+  token: string;
+  user: AdminUser;
+  admin?: AdminUser;
+}
+
+export interface AdminMeResponseData {
+  user: AdminUser;
+  admin?: AdminUser;
+}
+
+// Admin Product Management Types
+export interface AdminProductItem {
+  id: number;
+  name: string;
+  slug: string;
+  category: {
+    id: number;
+    name: string;
+    slug: string;
+  };
+  base_price: number;
+  primary_image: string | null;
+  total_stock: number;
+  images_count: number;
+  variants_count: number;
+  is_featured: boolean;
+  is_active: boolean;
+  status: 'active' | 'draft' | string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface StoreProductImagePayload {
+  image_url: string;
+  alt_text?: string;
+  is_primary?: boolean;
+  sort_order?: number;
+}
+
+export interface StoreProductVariantPayload {
+  size: string;
+  color_name: string;
+  color_hex: string;
+  sku: string;
+  additional_price?: number;
+  stock_quantity: number;
+}
+
+export interface StoreProductPayload {
+  category_id: number;
+  name: string;
+  slug?: string;
+  description: string;
+  base_price: number;
+  is_featured?: boolean;
+  is_active?: boolean;
+  images: StoreProductImagePayload[];
+  variants: StoreProductVariantPayload[];
+}
+
+export interface StoreProductResponseData {
+  id: number;
+  name: string;
+  slug: string;
+  base_price: number;
+  category: {
+    id: number;
+    name: string;
+  };
+  images_count: number;
+  variants_count: number;
+  total_stock: number;
+  is_featured: boolean;
+  is_active: boolean;
+}
+
+

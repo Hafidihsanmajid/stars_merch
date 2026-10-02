@@ -909,8 +909,57 @@ sequenceDiagram
    - Static compilation: 16 route statis/SSG berhasil digenerate saat build (837ms) dan ESLint 0 error.
 
 ### Milestone 6: Admin Portal & Product Management (Laravel Sanctum + Next.js Admin UI):
-1. [ ] **Issue BE-06**: Autentikasi Admin Laravel Sanctum, seeder akun default admin, dan middleware proteksi `/api/v1/admin/*`.
-2. [ ] **Issue BE-07**: REST API Admin Product Management (`POST /api/v1/admin/products` dengan transaksi atomik `DB::transaction`, `GET /api/v1/admin/products`, dan validasi SKU unik).
-3. [ ] **Issue FE-09**: Halaman Login Admin (`/admin/login`), State Autentikasi Admin (Zustand/Cookie), dan Protected Route Guard.
-4. [ ] **Issue FE-10**: Dashboard Admin Produk (`/admin/products`) & Formulir Tambah Produk Baru (`/admin/products/new`) dengan visual variant matrix builder.
-5. [ ] **Issue QA-03**: Automated Feature Tests Backend Admin API & Verifikasi Penambahan Produk Baru Muncul Real-time di Katalog Storefront.
+1. [x] **Issue BE-06**: Autentikasi Admin Laravel Sanctum, seeder akun default admin, dan middleware proteksi `/api/v1/admin/*`. (Selesai)
+2. [x] **Issue BE-07**: REST API Admin Product Management (`POST /api/v1/admin/products` dengan transaksi atomik `DB::transaction`, `GET /api/v1/admin/products`, dan validasi SKU unik). (Selesai)
+3. [x] **Issue FE-09**: Halaman Login Admin (`/admin/login`), State Autentikasi Admin (Zustand/Cookie), dan Protected Route Guard. (Selesai)
+4. [x] **Issue FE-10**: Dashboard Admin Produk (`/admin/products`) & Formulir Tambah Produk Baru (`/admin/products/new`) dengan visual variant matrix builder. (Selesai)
+5. [x] **Issue QA-03**: Automated Feature Tests Backend Admin API & Verifikasi Penambahan Produk Baru Muncul Real-time di Katalog Storefront. (Selesai)
+
+* *Catatan Teknis Arsitektur (Issue BE-06)*:
+  - Penambahan kolom `role` (default: `'admin'`) pada tabel `users` via migration `2026_10_02_000008_add_role_to_users_table.php`.
+  - Integrasi trait `Laravel\Sanctum\HasApiTokens` dan helper `isAdmin()` pada model `User`.
+  - Pembuatan seeder modular `AdminUserSeeder.php` terdaftar di `DatabaseSeeder.php` dengan akun default `admin@starsmerch.com` (`secretpassword`).
+  - Implementasi `AdminAuthController.php` (`POST /api/v1/admin/login`, `GET /api/v1/admin/me`, `POST /api/v1/admin/logout`) dan `AdminLoginRequest.php`.
+  - Middleware `EnsureAdmin.php` (`alias: admin`) dan standarisasi global `AuthenticationException` 401 pada `bootstrap/app.php`.
+  - Test suite `AdminAuthTest.php` (10 passed), total backend test suite: **28 passed (438 assertions)**.
+
+* *Catatan Teknis Arsitektur (Issue BE-07)*:
+  - Form request `StoreProductRequest.php` dengan validasi ketat nama, kategori, deskripsi, harga, galeri foto (`is_primary`), dan varian (`size`, `color_name`, `color_hex`, `sku`, `stock_quantity`).
+  - Pencegahan duplikasi SKU berlapis: validasi input `distinct` & `unique:product_variants,sku` dan validasi runtime transaction guard.
+  - Implementasi `AdminProductController.php` dengan transaksi atomik `DB::transaction` pada `store()` menjamin integritas relasi `Product`, `ProductImage`, dan `ProductVariant` tanpa risiko *orphan records*.
+  - Pemformatan response tabel inventaris via `AdminProductResource.php` dengan kalkulasi akumulasi stok fisik seluruh varian (`total_stock`), jumlah varian & foto, serta status publikasi.
+  - Endpoint `GET /api/v1/admin/products` mendukung filter kategori, filter status publikasi (`active`, `draft`), pencarian keyword nama & SKU varian, serta paginasi.
+  - Test suite `AdminProductTest.php` (10 passed), total backend test suite: **38 passed (665 assertions)**.
+
+* *Catatan Teknis Arsitektur (Issue FE-09)*:
+  - State management autentikasi admin di `src/store/useAdminAuthStore.ts` berbasis Zustand dengan sinkronisasi ganda: cookie browser (`admin_token`) dan `localStorage` (`stars_admin_session`) untuk ketahanan refresh halaman dan kompatibilitas server-side proxy.
+  - Integrasi API client terstandar (`src/lib/api.ts`) untuk endpoint admin Laravel Sanctum: `api.admin.login()`, `api.admin.me()`, dan `api.admin.logout()`.
+  - Implementasi Next.js 16 Proxy convention (`src/proxy.ts`, pengganti file `middleware.ts`) dengan route matcher `/admin/:path*` untuk pengalihan server-side tanpa kedip (*zero flash redirection*).
+  - Client-side route guard (`src/components/admin/AdminRouteGuard.tsx`) yang membungkus `src/app/admin/layout.tsx` untuk verifikasi integritas sesi aktif ke backend API sebelum merender view admin.
+  - Komponen workspace admin terisolasi: `AdminHeader.tsx` dengan badge status otentikasi dan aksi logout aman, serta penyembunyian otomatis komponen etalase publik (`Navbar.tsx` & `Footer.tsx`) pada rute admin.
+  - Halaman login admin (`src/app/admin/login/page.tsx`) dengan tema streetwear dark aesthetic, toggle visibilitas kata sandi, umpan balik error dinamis, dan helper cepat kredensial demo default.
+  - Build frontend Next.js 16 berhasil 100% tanpa error (19 route statis/SSG ter-generate).
+
+* *Catatan Teknis Arsitektur (Issue FE-10)*:
+  - Definisi kontrak antarmuka admin di `src/types/api.ts`: `AdminProductItem`, `StoreProductPayload`, `StoreProductImagePayload`, `StoreProductVariantPayload`, dan `StoreProductResponseData`.
+  - Penambahan method API manajemen produk di `src/lib/api.ts`: `api.admin.getProducts()` (mendukung query filter kategori, status, keyword pencarian, sorting, paginasi), `api.admin.createProduct()` (POST payload atomik dengan header Bearer Token Sanctum), dan `api.admin.getProduct()`.
+  - Dashboard inventaris produk admin `src/components/admin/AdminProductsView.tsx` (`/admin/products`) menampilkan tabel inventaris dengan thumbnail foto, nama & slug, kategori, harga IDR, akumulasi stok fisik seluruh varian, jumlah varian/foto, status publikasi, dan aksi tautan langsung ke storefront. Dilengkapi 4 kartu ringkasan metrik inventaris.
+  - Komponen generator matriks varian visual `src/components/admin/VariantMatrixBuilder.tsx`: generator ukuran (`S`, `M`, `L`, `XL`, `XXL`) × warna (preset streetwear & custom hex picker) yang otomatis menghasilkan kode SKU unik `STM-{SLUG}-{COLOR}-{SIZE}`, input stok fisik awal, tambahan harga, dan deteksi validasi duplikasi SKU real-time.
+  - Formulir pendaftaran produk streetwear baru `src/components/admin/CreateProductForm.tsx` (`/admin/products/new`): input master data produk (live slug generator, kategori dinamis, harga Rupiah, spesifikasi katun/GSM), galeri foto multi-gambar dengan penentuan foto primer (`is_primary`) dan preset instan, serta integrasi transaksi penyimpanan atomik ke backend.
+  - Build produksi Next.js 16 (`npm run build`) sukses 100% (20 route statis/SSG ter-generate), dan ESLint 0 error pada seluruh komponen admin baru.
+
+* *Catatan Teknis Arsitektur (Issue QA-03)*:
+  - Pembuatan automated feature test suite `tests/Feature/AdminLifecycleAndRealtimeStorefrontTest.php` yang menguji alur integrasi penuh:
+    1. Otentikasi sesi admin via token Sanctum (`POST /api/v1/admin/login`).
+    2. Pembuatan produk baru berelasi ganda secara atomik (`POST /api/v1/admin/products`).
+    3. Verifikasi ketersediaan real-time pada Featured Showcase Homepage (`GET /api/v1/products/featured`).
+    4. Verifikasi pencarian dan filter katalog publik (`GET /api/v1/products?search=...`).
+    5. Verifikasi detail produk PDP (`GET /api/v1/products/{slug}`) dengan harga varian dinamis.
+    6. Validasi keranjang (`POST /api/v1/cart/validate`) dan transaksi checkout belanja (`POST /api/v1/checkout`).
+    7. Verifikasi pemotongan stok fisik SQLite dan sinkronisasi real-time pada tabel inventaris admin (`GET /api/v1/admin/products`).
+    8. Pencabutan token Sanctum (`POST /api/v1/admin/logout`) dan penolakan 401 Unauthorized.
+  - Total automated test suite backend: **39 test cases lolos 100% (731 assertions)**.
+  - Validasi build produksi frontend: 20 route statis/SSG berhasil digenerate dalam 1176ms.
+
+
+

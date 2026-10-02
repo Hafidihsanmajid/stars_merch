@@ -47,6 +47,10 @@ export default function Navbar() {
     { name: 'Pants & Aksesori', href: '/catalog?category=pants' },
   ];
 
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-zinc-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md transition-all">
       {/* Top Announcement Bar */}

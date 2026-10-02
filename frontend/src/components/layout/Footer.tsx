@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { 
   Ruler, 
   HelpCircle, 
@@ -14,9 +15,15 @@ import {
 import { useSizeChartStore } from '@/store/useSizeChartStore';
 
 export default function Footer() {
+  const pathname = usePathname();
   const { open: openSizeChart } = useSizeChartStore();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();

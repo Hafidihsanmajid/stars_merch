@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\AdminAuthController;
+use App\Http\Controllers\Api\Admin\AdminProductController;
 use App\Http\Controllers\Api\CartValidationController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CheckoutController;
@@ -26,4 +28,19 @@ Route::prefix('v1')->group(function () {
     // Checkout & Orders
     Route::post('/checkout', [CheckoutController::class, 'checkout']);
     Route::get('/orders/{order_number}', [CheckoutController::class, 'show']);
+
+    // Admin Authentication & Protected Portal Routes
+    Route::prefix('admin')->group(function () {
+        Route::post('/login', [AdminAuthController::class, 'login']);
+
+        Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+            Route::get('/me', [AdminAuthController::class, 'me']);
+            Route::post('/logout', [AdminAuthController::class, 'logout']);
+
+            // Product Management
+            Route::get('/products', [AdminProductController::class, 'index']);
+            Route::post('/products', [AdminProductController::class, 'store']);
+            Route::get('/products/{id}', [AdminProductController::class, 'show']);
+        });
+    });
 });

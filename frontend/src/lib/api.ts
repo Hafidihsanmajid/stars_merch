@@ -9,6 +9,13 @@ import {
   CheckoutPayload,
   CheckoutResult,
   OrderDetail,
+  AdminUser,
+  AdminLoginPayload,
+  AdminLoginResponseData,
+  AdminMeResponseData,
+  AdminProductItem,
+  StoreProductPayload,
+  StoreProductResponseData,
 } from '@/types/api';
 import { MOCK_CATEGORIES, MOCK_PRODUCTS, MOCK_PRODUCT_DETAILS } from './mockData';
 
@@ -389,4 +396,235 @@ export const api = {
       };
     }
   },
+
+  /**
+   * Modul API Administrasi & Autentikasi Admin
+   */
+  admin: {
+    /**
+     * Login admin dengan email dan password
+     */
+    async login(payload: AdminLoginPayload): Promise<ApiResponse<AdminLoginResponseData>> {
+      try {
+        return await apiRequest<AdminLoginResponseData>('/admin/login', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+      } catch (err: unknown) {
+        // If ApiClientError from backend, throw it so real server validation/auth error is visible
+        if (err instanceof ApiClientError) {
+          throw err;
+        }
+
+        // Offline / network fallback for demo testing
+        if (payload.email === 'admin@starsmerch.com' && payload.password === 'secretpassword') {
+          const mockUser: AdminUser = {
+            id: 1,
+            name: 'Admin Stars Merch',
+            email: 'admin@starsmerch.com',
+            role: 'admin',
+          };
+          return {
+            success: true,
+            statusCode: 200,
+            message: 'Login berhasil (Offline Demo Session).',
+            data: {
+              token: 'mock_admin_token_stars_merch_secret_key',
+              user: mockUser,
+              admin: mockUser,
+            },
+          };
+        }
+
+        throw new ApiClientError('Email atau kata sandi tidak valid.', 401, 'AUTHENTICATION_FAILED');
+      }
+    },
+
+    /**
+     * Mengambil data profil admin dari token aktif
+     */
+    async me(token: string): Promise<ApiResponse<AdminMeResponseData>> {
+      try {
+        return await apiRequest<AdminMeResponseData>('/admin/me', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } catch (err: unknown) {
+        if (err instanceof ApiClientError && err.statusCode === 401) {
+          throw err;
+        }
+
+        if (token.startsWith('mock_admin_token')) {
+          const mockUser: AdminUser = {
+            id: 1,
+            name: 'Admin Stars Merch',
+            email: 'admin@starsmerch.com',
+            role: 'admin',
+          };
+          return {
+            success: true,
+            statusCode: 200,
+            message: 'Profil admin berhasil diambil (Mock).',
+            data: {
+              user: mockUser,
+              admin: mockUser,
+            },
+          };
+        }
+
+        throw err;
+      }
+    },
+
+    /**
+     * Logout admin dan mencabut access token aktif
+     */
+    async logout(token?: string): Promise<ApiResponse<null>> {
+      try {
+        if (token) {
+          return await apiRequest<null>('/admin/logout', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+        }
+        return {
+          success: true,
+          statusCode: 200,
+          message: 'Logout berhasil.',
+          data: null,
+        };
+      } catch {
+        return {
+          success: true,
+          statusCode: 200,
+          message: 'Logout berhasil (Local Session Cleared).',
+          data: null,
+        };
+      }
+    },
+
+    /**
+     * Mengambil daftar produk inventaris admin dengan filter, pencarian, dan paginasi
+     */
+    async getProducts(
+      params?: {
+        category?: string;
+        status?: 'all' | 'active' | 'draft' | string;
+        search?: string;
+        sort?: 'newest' | 'oldest' | 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' | string;
+        page?: number;
+        per_page?: number;
+      },
+      token?: string
+    ): Promise<ApiResponse<AdminProductItem[]>> {
+      try {
+        const query = new URLSearchParams();
+        if (params?.category) query.append('category', params.category);
+        if (params?.status && params.status !== 'all') query.append('status', params.status);
+        if (params?.search) query.append('search', params.search);
+        if (params?.sort) query.append('sort', params.sort);
+        if (params?.page) query.append('page', params.page.toString());
+        if (params?.per_page) query.append('per_page', params.per_page.toString());
+
+        const queryString = query.toString();
+        const endpoint = queryString ? `/admin/products?${queryString}` : '/admin/products';
+
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        return await apiRequest<AdminProductItem[]>(endpoint, { headers });
+      } catch (err: unknown) {
+        if (err instanceof ApiClientError && (err.statusCode === 401 || err.statusCode === 403)) {
+          throw err;
+        }
+
+        // Mock fallback if backend offline
+        const mockList: AdminProductItem[] = MOCK_PRODUCTS.map((p) => ({
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          category: p.category,
+          base_price: p.base_price,
+          primary_image: p.primary_image,
+          total_stock: p.total_stock,
+          images_count: 2,
+          variants_count: p.available_sizes.length * p.available_colors.length,
+          is_featured: p.is_featured,
+          is_active: true,
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }));
+
+        let filtered = [...mockList];
+        if (params?.category) {
+          filtered = filtered.filter(
+            (p) => p.category.slug === params.category || String(p.category.id) === params.category
+          );
+        }
+        if (params?.search) {
+          const q = params.search.toLowerCase();
+          filtered = filtered.filter((p) => p.name.toLowerCase().includes(q) || p.slug.includes(q));
+        }
+
+        const page = params?.page || 1;
+        const perPage = params?.per_page || 12;
+        const total = filtered.length;
+        const totalPages = Math.ceil(total / perPage);
+        const start = (page - 1) * perPage;
+        const paginated = filtered.slice(start, start + perPage);
+
+        return {
+          success: true,
+          statusCode: 200,
+          message: 'Mock fallback admin products',
+          data: paginated,
+          meta: {
+            page,
+            limit: perPage,
+            total,
+            total_pages: totalPages,
+          },
+        };
+      }
+    },
+
+    /**
+     * Menyimpan produk baru beserta gambar dan varian secara atomik
+     */
+    async createProduct(
+      payload: StoreProductPayload,
+      token?: string
+    ): Promise<ApiResponse<StoreProductResponseData>> {
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      return await apiRequest<StoreProductResponseData>('/admin/products', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload),
+      });
+    },
+
+    /**
+     * Mengambil detail satu produk untuk tampilan admin
+     */
+    async getProduct(id: number | string, token?: string): Promise<ApiResponse<ProductDetail>> {
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      return await apiRequest<ProductDetail>(`/admin/products/${id}`, { headers });
+    },
+  },
 };
+
