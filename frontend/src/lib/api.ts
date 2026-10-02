@@ -10,7 +10,7 @@ import {
   CheckoutResult,
   OrderDetail,
 } from '@/types/api';
-import { MOCK_CATEGORIES, MOCK_PRODUCTS } from './mockData';
+import { MOCK_CATEGORIES, MOCK_PRODUCTS, MOCK_PRODUCT_DETAILS } from './mockData';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
 
@@ -176,93 +176,17 @@ export const api = {
     try {
       return await apiRequest<ProductDetail>(`/products/${encodeURIComponent(slug)}`);
     } catch {
-      const found = MOCK_PRODUCTS.find((p) => p.slug === slug);
-      if (!found) {
-        throw new ApiClientError('Produk tidak ditemukan', 404, 'NOT_FOUND');
+      const detail = MOCK_PRODUCT_DETAILS[slug];
+      if (detail) {
+        return {
+          success: true,
+          statusCode: 200,
+          message: 'Mock fallback data',
+          data: detail,
+        };
       }
 
-      // Generate full product detail
-      const detail: ProductDetail = {
-        id: found.id,
-        name: found.name,
-        slug: found.slug,
-        description: `Streetwear apparel berkualitas tinggi dengan potongan boxy-oversized khas Stars Merch. Dibuat menggunakan bahan 100% 24s Heavyweight Cotton (240 GSM) yang halus, awet, dan nyaman dipakai harian di iklim tropis. Dilengkapi sablon grafis tahan lama.`,
-        base_price: found.base_price,
-        category: found.category,
-        is_featured: found.is_featured,
-        images: [
-          {
-            id: found.id * 10 + 1,
-            image_url: found.primary_image,
-            alt_text: `Tampak Depan - ${found.name}`,
-            is_primary: true,
-            sort_order: 1,
-          },
-          {
-            id: found.id * 10 + 2,
-            image_url: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&auto=format&fit=crop&q=80',
-            alt_text: `Detail Bahan - ${found.name}`,
-            is_primary: false,
-            sort_order: 2,
-          },
-        ],
-        variants: [
-          {
-            id: found.id * 100 + 1,
-            size: 'S',
-            color_name: found.available_colors[0]?.name || 'Black',
-            color_hex: found.available_colors[0]?.hex || '#1E1E24',
-            sku: `STM-${found.slug.substring(0, 3).toUpperCase()}-S`,
-            price: found.base_price,
-            stock: 12,
-          },
-          {
-            id: found.id * 100 + 2,
-            size: 'M',
-            color_name: found.available_colors[0]?.name || 'Black',
-            color_hex: found.available_colors[0]?.hex || '#1E1E24',
-            sku: `STM-${found.slug.substring(0, 3).toUpperCase()}-M`,
-            price: found.base_price,
-            stock: 0, // for sold out testing
-          },
-          {
-            id: found.id * 100 + 3,
-            size: 'L',
-            color_name: found.available_colors[0]?.name || 'Black',
-            color_hex: found.available_colors[0]?.hex || '#1E1E24',
-            sku: `STM-${found.slug.substring(0, 3).toUpperCase()}-L`,
-            price: found.base_price,
-            stock: 8,
-          },
-          {
-            id: found.id * 100 + 4,
-            size: 'XL',
-            color_name: found.available_colors[0]?.name || 'Black',
-            color_hex: found.available_colors[0]?.hex || '#1E1E24',
-            sku: `STM-${found.slug.substring(0, 3).toUpperCase()}-XL`,
-            additional_price: 10000,
-            price: found.base_price + 10000,
-            stock: 5,
-          },
-          {
-            id: found.id * 100 + 5,
-            size: 'XXL',
-            color_name: found.available_colors[0]?.name || 'Black',
-            color_hex: found.available_colors[0]?.hex || '#1E1E24',
-            sku: `STM-${found.slug.substring(0, 3).toUpperCase()}-XXL`,
-            additional_price: 20000,
-            price: found.base_price + 20000,
-            stock: 3,
-          },
-        ],
-      };
-
-      return {
-        success: true,
-        statusCode: 200,
-        message: 'Mock fallback data',
-        data: detail,
-      };
+      throw new ApiClientError('Produk tidak ditemukan', 404, 'NOT_FOUND');
     }
   },
 

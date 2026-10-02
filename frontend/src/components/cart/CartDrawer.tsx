@@ -3,8 +3,17 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
-import { useCartStore } from '@/store/useCartStore';
+import { 
+  X, 
+  Trash2, 
+  Plus, 
+  Minus, 
+  ShoppingBag, 
+  ArrowRight, 
+  Sparkles,
+  ExternalLink
+} from 'lucide-react';
+import { useCartStore, FREE_SHIPPING_THRESHOLD } from '@/store/useCartStore';
 import { formatRupiah } from '@/lib/utils';
 
 export default function CartDrawer() {
@@ -16,6 +25,10 @@ export default function CartDrawer() {
     updateQuantity,
     getSubtotal,
     getTotalItems,
+    getShippingFee,
+    getDiscountAmount,
+    getGrandTotal,
+    coupon,
   } = useCartStore();
 
   const [mounted, setMounted] = useState(false);
@@ -49,6 +62,13 @@ export default function CartDrawer() {
 
   const totalItems = getTotalItems();
   const subtotal = getSubtotal();
+  const shippingFee = getShippingFee();
+  const discountAmount = getDiscountAmount();
+  const grandTotal = getGrandTotal();
+
+  // Free shipping progress
+  const diffToFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
+  const freeShippingProgress = Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100));
 
   return (
     <div
@@ -76,26 +96,55 @@ export default function CartDrawer() {
           }`}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 px-6 py-5">
-            <div className="flex items-center gap-2.5">
-              <ShoppingBag className="h-5 w-5 text-zinc-900 dark:text-zinc-100" />
-              <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
-                Keranjang Belanja
-              </h2>
-              {totalItems > 0 && (
-                <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-2.5 py-0.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  {totalItems}
-                </span>
-              )}
+          <div className="border-b border-zinc-100 dark:border-zinc-800 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <ShoppingBag className="h-5 w-5 text-zinc-900 dark:text-zinc-100" />
+                <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
+                  Keranjang Belanja
+                </h2>
+                {totalItems > 0 && (
+                  <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-2.5 py-0.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                    {totalItems}
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={closeDrawer}
+                aria-label="Tutup keranjang"
+                className="rounded-lg p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={closeDrawer}
-              aria-label="Tutup keranjang"
-              className="rounded-lg p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
+
+            {/* Free Shipping Progress Indicator */}
+            {items.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800/80">
+                <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
+                  {diffToFreeShipping === 0 || coupon?.type === 'free_shipping' ? (
+                    <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-bold">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      🎉 Selamat! Anda berhak Gratis Ongkir!
+                    </span>
+                  ) : (
+                    <span className="text-zinc-600 dark:text-zinc-400">
+                      Tambah <strong>{formatRupiah(diffToFreeShipping)}</strong> lagi untuk <strong>Gratis Ongkir</strong>
+                    </span>
+                  )}
+                  <span className="text-[11px] font-mono text-zinc-400">
+                    {freeShippingProgress}%
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                    style={{ width: `${coupon?.type === 'free_shipping' ? 100 : freeShippingProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Cart Content */}
@@ -114,7 +163,7 @@ export default function CartDrawer() {
                 <Link
                   href="/catalog"
                   onClick={closeDrawer}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors shadow-sm"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors shadow-sm cursor-pointer"
                 >
                   Mulai Belanja
                   <ArrowRight className="h-4 w-4" />
@@ -152,7 +201,7 @@ export default function CartDrawer() {
                             type="button"
                             onClick={() => removeItem(item.variantId)}
                             aria-label={`Hapus ${item.name} dari keranjang`}
-                            className="text-zinc-400 hover:text-red-500 transition-colors p-1"
+                            className="text-zinc-400 hover:text-red-500 transition-colors p-1 cursor-pointer"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -186,7 +235,7 @@ export default function CartDrawer() {
                             type="button"
                             onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
                             aria-label="Kurangi kuantitas"
-                            className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                            className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors cursor-pointer"
                           >
                             <Minus className="h-3 w-3" />
                           </button>
@@ -198,7 +247,7 @@ export default function CartDrawer() {
                             onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
                             disabled={item.maxStock !== undefined && item.quantity >= item.maxStock}
                             aria-label="Tambah kuantitas"
-                            className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                           >
                             <Plus className="h-3 w-3" />
                           </button>
@@ -213,34 +262,62 @@ export default function CartDrawer() {
 
           {/* Footer & Checkout */}
           {items.length > 0 && (
-            <div className="border-t border-zinc-100 dark:border-zinc-800 p-6 space-y-4 bg-zinc-50/50 dark:bg-zinc-900/50">
-              <div className="flex items-center justify-between text-base font-semibold">
-                <span className="text-zinc-600 dark:text-zinc-400">Subtotal</span>
-                <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                  {formatRupiah(subtotal)}
-                </span>
+            <div className="border-t border-zinc-100 dark:border-zinc-800 p-6 space-y-3 bg-zinc-50/50 dark:bg-zinc-900/50">
+              <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+                <div className="flex items-center justify-between">
+                  <span>Subtotal</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">{formatRupiah(subtotal)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Ongkos Kirim</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    {shippingFee === 0 ? (
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">GRATIS</span>
+                    ) : (
+                      formatRupiah(shippingFee)
+                    )}
+                  </span>
+                </div>
+                {discountAmount > 0 && (
+                  <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
+                    <span>Diskon Kupon ({coupon?.code})</span>
+                    <span>-{formatRupiah(discountAmount)}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-base font-bold text-zinc-950 dark:text-white pt-2 border-t border-zinc-200/60 dark:border-zinc-800">
+                  <span>Total Tagihan</span>
+                  <span>{formatRupiah(grandTotal)}</span>
+                </div>
               </div>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Pajak dan ongkos kirim akan dihitung secara otomatis pada halaman checkout.
-              </p>
 
               <div className="space-y-2 pt-2">
                 <Link
                   href="/checkout"
                   onClick={closeDrawer}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-sm font-semibold bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 transition-all shadow-md hover:shadow-lg"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-sm font-semibold bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 transition-all shadow-md hover:shadow-lg cursor-pointer"
                 >
                   Lanjut ke Checkout
                   <ArrowRight className="h-4 w-4" />
                 </Link>
 
-                <button
-                  type="button"
-                  onClick={closeDrawer}
-                  className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                >
-                  Lanjutkan Belanja
-                </button>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/cart"
+                    onClick={closeDrawer}
+                    className="flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold text-center border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Halaman Keranjang</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={closeDrawer}
+                    className="py-2.5 px-4 rounded-xl text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                  >
+                    Tutup
+                  </button>
+                </div>
               </div>
             </div>
           )}

@@ -290,10 +290,10 @@ Semua endpoint backend Laravel diawali dengan prefix `/api/v1/`.
 
 ### Milestone 3: Catalog & Product Detail Integration
 * [x] **Issue FE-04**: Halaman Katalog Pakaian (Grid Produk, Filter Kategori, Sorting).
-* [ ] **Issue FE-05**: Halaman Detail Produk (Galeri gambar, Pemilih Ukuran & Warna, Stok real-time, Tombol Tambah ke Keranjang).
+* [x] **Issue FE-05**: Halaman Detail Produk (Galeri gambar, Pemilih Ukuran & Warna, Stok real-time, Tombol Tambah ke Keranjang).
 
 ### Milestone 4: Cart & Checkout Flow
-* [ ] **Issue FE-06**: Implementasi State Keranjang Belanja via Zustand terhubung ke `localStorage` + UI Cart Drawer.
+* [x] **Issue FE-06**: Implementasi State Keranjang Belanja via Zustand terhubung ke `localStorage` + UI Cart Drawer & Dedicated Cart Page.
 * [ ] **Issue FE-07**: Halaman Checkout (Form alamat pengiriman, opsi pembayaran, ringkasan pesanan).
 * [ ] **Issue FE-08**: Integrasi submit checkout ke API Backend Laravel & Halaman Sukses Pesanan.
 
@@ -353,3 +353,14 @@ Semua endpoint backend Laravel diawali dengan prefix `/api/v1/`.
    - Fitur filter tab kategori dinamis, pencarian instan (*search input*), dan dropdown pengurutan (*sorting* harga & terbaru).
 2. **Graceful Fallback & Mock Dataset**:
    - Penambahan `src/lib/mockData.ts` dan logic fallback pada `src/lib/api.ts` agar halaman katalog tetap berfungsi dan menampilkan data estetis ketika backend sedang offline.
+
+#### G. Frontend (Issue FE-05)
+1. **Halaman Detail Produk / PDP (`src/app/product/[slug]/page.tsx`)**:
+   - Dynamic Static Site Generation (SSG) dengan `generateStaticParams` untuk pra-render semua rute produk saat build.
+   - Komponen modular di `src/components/product/`: `ProductDetailView.tsx`, `ProductGallery.tsx`, `VariantSelector.tsx`, dan `ProductStockIndicator.tsx`.
+   - Swatch visual pilihan warna (nama & hex code), pemilih ukuran interaktif dengan coretan otomatis jika ukuran habis (*sold out*), indikator stok fisik real-time, serta tombol "Add to Cart" yang terintegrasi dengan Zustand cart store.
+
+#### H. Frontend (Issue FE-06)
+1. **Dedicated Cart Page (`src/app/cart/page.tsx`) & Cart Drawer**:
+   - Penyediaan dua akses keranjang belanja: panel geser melayang (*Cart Drawer*) dan halaman penuh (*Dedicated Cart Page*) dengan komponen `CartPageView.tsx`.
+   - Ringkasan belanja dinamis: subtotal, estimasi ongkir otomatis (bebas ongkir untuk pesanan di atas Rp 300.000), kontrol kuantitas (+/-), penghapusan item, dan tombol navigasi langsung ke alur checkout.
