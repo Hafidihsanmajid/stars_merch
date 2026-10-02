@@ -664,21 +664,31 @@ sequenceDiagram
 ## 5. Ringkasan Tugas Implementasi Backend & Frontend
 
 ### Modul Backend (Laravel 12):
-1. **Migration & Models**: `Category`, `Product`, `ProductImage`, `ProductVariant`, `Customer`, `Order`, `OrderItem`.
-2. **Seeders**: Data demo 8 pakaian lengkap dengan gambar dummy, varian warna/ukuran, dan stok.
-3. **Controllers & Resources**:
+1. [x] **Migration & Models**: `Category`, `Product`, `ProductImage`, `ProductVariant`, `Customer`, `Order`, `OrderItem`. (Selesai pada commit `ec1868b`)
+2. [x] **Seeders**: Data demo 8 pakaian lengkap dengan gambar dummy, varian warna/ukuran, dan stok fisik. (Selesai - Issue BE-03)
+   * *Catatan Teknis Arsitektur*: Seeder dipecah secara modular (`CategorySeeder.php`, `ProductSeeder.php`, dan `DatabaseSeeder.php`) dengan operasi idempotent `updateOrCreate`.
+3. [ ] **Controllers & Resources**:
    - `CategoryController.php` -> `CategoryResource.php`
    - `ProductController.php` -> `ProductResource.php`, `ProductDetailResource.php`
    - `CartValidationController.php`
    - `CheckoutController.php` (dengan `CheckoutRequest.php` untuk validasi input dan `DB::transaction`).
 
-### Modul Frontend (Next.js 15):
-1. **API Client Helper**: Wrapper `fetch` dengan base URL `http://127.0.0.1:8000/api/v1` dan typing TypeScript otomatis.
-2. **Zustand Cart Store**: Menyimpan array item `{ variantId, productId, name, size, color, price, quantity, image }` tersinkronisasi dengan `localStorage`.
-3. **UI Views**:
-   - Beranda (`/`): Hero + Featured Products (`GET /api/v1/products/featured`).
-   - Katalog (`/catalog`): Filter kategori, sortir harga, grid produk.
-   - Detail Produk (`/product/[slug]`): Swatch warna, tombol ukuran, live stock guard.
-   - Cart Drawer: Komponen melayang dengan validasi kuantitas.
-   - Checkout Page (`/checkout`): Formulir alamat dan pemilihan metode pembayaran dasar.
-   - Success Page (`/checkout/success`): Menampilkan detail invoice order.
+### Modul Frontend (Next.js 16 + React 19 + Tailwind CSS v4):
+1. [x] **Project Scaffolding & Setup**: Inisialisasi Next.js 16 (App Router), Tailwind CSS v4, Lucide React, Zustand. (Selesai - Issue FE-01)
+2. [x] **API Client Helper & TypeScript Types**: Wrapper `fetch` dengan base URL `http://127.0.0.1:8000/api/v1` dan contract types di `src/types/api.ts` & `src/lib/api.ts`. (Selesai)
+3. [x] **State Management (Zustand)**:
+   - `src/store/useCartStore.ts`: Menyimpan keranjang belanja `{ variantId, productId, name, size, color, price, quantity, image }` tersinkronisasi `localStorage`.
+   - `src/store/useSizeChartStore.ts`: *(Perubahan Tambahan)* Mengelola visibility modal panduan ukuran (*Size Chart Modal*) secara terpusat.
+4. [x] **Global Layout & Overlay Components**: (Selesai - Issue FE-02)
+   - `src/components/layout/Navbar.tsx`: Sticky glassmorphism header, responsive mobile drawer, dynamic cart count badge.
+   - `src/components/layout/Footer.tsx`: Brand narrative, navigation links, trigger panduan ukuran.
+   - `src/components/cart/CartDrawer.tsx`: Slide-over drawer keranjang belanja dengan aksi tambah/kurang jumlah dan kalkulasi subtotal realtime.
+   - `src/components/modals/SizeChartModal.tsx`: *(Perubahan Tambahan)* Modal ukuran streetwear interaktif (Tees, Hoodies, Pants).
+   - `src/lib/utils.ts`: Helper `formatRupiah` dan `cn`.
+   - `src/app/layout.tsx`: Root layout yang menggabungkan seluruh komponen layout global.
+5. [ ] **UI Views**:
+   - Beranda (`/`): Hero + Featured Products (`GET /api/v1/products/featured`). (Issue FE-03)
+   - Katalog (`/catalog`): Filter kategori, sortir harga, grid produk. (Issue FE-04)
+   - Detail Produk (`/product/[slug]`): Swatch warna, tombol ukuran, live stock guard. (Issue FE-05)
+   - Checkout Page (`/checkout`): Formulir alamat dan pemilihan metode pembayaran dasar. (Issue FE-07)
+   - Success Page (`/checkout/success`): Menampilkan detail invoice order. (Issue FE-08)

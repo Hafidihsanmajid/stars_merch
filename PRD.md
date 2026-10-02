@@ -279,13 +279,13 @@ Semua endpoint backend Laravel diawali dengan prefix `/api/v1/`.
 ### Milestone 1: Backend Foundation (Laravel 12 + SQLite)
 * [x] **Issue BE-01**: Inisialisasi proyek Laravel 12 & konfigurasi database SQLite.
 * [x] **Issue BE-02**: Pembuatan migration database (`categories`, `products`, `product_images`, `product_variants`, `orders`, `order_items`).
-* [ ] **Issue BE-03**: Pembuatan Database Seeder dengan sampel produk pakaian Stars Merch (kaos, hoodie, varian ukuran & warna).
+* [x] **Issue BE-03**: Pembuatan Database Seeder dengan sampel produk pakaian Stars Merch (kaos, hoodie, varian ukuran & warna).
 * [ ] **Issue BE-04**: Implementasi Controller & Resource untuk Product Catalog & Detail API.
 * [ ] **Issue BE-05**: Implementasi Checkout Controller dengan validasi stok atomik via DB Transaction.
 
 ### Milestone 2: Frontend Foundation & UI Setup (Next.js + Tailwind)
-* [ ] **Issue FE-01**: Inisialisasi proyek Next.js dengan Tailwind CSS dan Lucide React.
-* [ ] **Issue FE-02**: Setup Global Layout (Navbar dengan badge jumlah keranjang, Footer brand).
+* [x] **Issue FE-01**: Inisialisasi proyek Next.js dengan Tailwind CSS dan Lucide React.
+* [x] **Issue FE-02**: Setup Global Layout (Navbar dengan badge jumlah keranjang, Footer brand, Cart Drawer, dan Modal Size Chart).
 * [ ] **Issue FE-03**: Implementasi Halaman Utama (Hero Section, Value Proposition, Featured Collections).
 
 ### Milestone 3: Catalog & Product Detail Integration
@@ -300,3 +300,25 @@ Semua endpoint backend Laravel diawali dengan prefix `/api/v1/`.
 ### Milestone 5: Testing, QA & Polish
 * [ ] **Issue QA-01**: Pengujian alur belanja *end-to-end* (Pilih baju -> Pilih varian -> Masuk keranjang -> Checkout -> Verifikasi pengurangan stok di SQLite).
 * [ ] **Issue QA-02**: Validasi responsivitas mobile & optimasi performa gambar.
+
+---
+
+### 7.1 Catatan Teknis & Perubahan dari Rencana Awal (Technical Notes)
+
+#### A. Backend (Issue BE-03)
+1. **Modular Seeder Architecture**:
+   - Seeder dipecah secara modular menjadi `CategorySeeder.php` dan `ProductSeeder.php`, dipanggil via orchestrator `DatabaseSeeder.php`.
+   - Menggunakan metode `updateOrCreate` untuk menjaga sifat *idempotent* sehingga seeder aman dijalankan berulang kali tanpa risiko duplikasi data SKU atau slug.
+2. **Kelengkapan Data Demo**:
+   - Mengisi 4 kategori master: *Oversized T-Shirts*, *Hoodies & Sweaters*, *Pants & Cargo*, dan *Accessories*.
+   - Mengisi katalog produk lengkap dengan deskripsi streetwear detail (tipe GSM, material cotton), relasi gambar ganda (tampak depan/belakang) via URL CDN Unsplash, varian ukuran (`S`, `M`, `L`, `XL`, `XXL`), kode warna HEX asli, dan variasi stok (termasuk stok `0` untuk skenario uji batas/sold out).
+
+#### B. Frontend (Issue FE-02)
+1. **Pemisahan Komponen Layout & Global Overlays**:
+   - Komponen layout utama distrukturisasi rapi di folder `src/components/layout/` (`Navbar.tsx`, `Footer.tsx`), `src/components/cart/` (`CartDrawer.tsx`), dan `src/components/modals/` (`SizeChartModal.tsx`).
+2. **Penambahan Modal Panduan Ukuran & State Khusus**:
+   - Untuk memenuhi kebutuhan [FR-1.4](file:///D:/Stars_merch/PRD.md#L76) secara elegan, ditambahkan state management baru `src/store/useSizeChartStore.ts` berbasis Zustand agar Modal Size Chart dapat dipicu dari Footer, Navbar, maupun Halaman Detail Produk kelak.
+3. **Penyatuan Komponen di Root Layout**:
+   - File `src/app/layout.tsx` diperbarui untuk merender `<Navbar />`, `<CartDrawer />`, dan `<SizeChartModal />` secara konsisten di seluruh route aplikasi dengan styling responsif Tailwind CSS v4.
+4. **Utility Functions**:
+   - Ditambahkan `src/lib/utils.ts` berisi formatter mata uang terstandar `formatRupiah()` untuk format angka harga IDR.
