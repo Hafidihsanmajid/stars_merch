@@ -672,9 +672,11 @@ sequenceDiagram
    - `ProductController.php` -> `ProductResource.php`, `ProductDetailResource.php` (`GET /api/v1/products`, `GET /api/v1/products/featured`, `GET /api/v1/products/{slug}`)
    - Konfigurasi CORS `config/cors.php`
    - Feature Test Suite `CatalogApiTest.php` (8 passed)
-4. [ ] **Cart Validation & Checkout Controller**: (Issue BE-05)
-   - `CartValidationController.php`
-   - `CheckoutController.php` (dengan `CheckoutRequest.php` untuk validasi input dan `DB::transaction`).
+4. [x] **Cart Validation & Checkout Controller**: (Selesai - Issue BE-05)
+   - `CartValidationController.php` (`POST /api/v1/cart/validate`)
+   - `CheckoutController.php` (`POST /api/v1/checkout`, `GET /api/v1/orders/{order_number}`) dengan `DB::transaction` dan validasi pemotongan stok fisik
+   - Form Requests: `ValidateCartRequest.php`, `CheckoutRequest.php`
+   - Feature Test Suite `CheckoutApiTest.php` (7 passed, total 17 passed)
 
 ### Modul Frontend (Next.js 16 + React 19 + Tailwind CSS v4):
 1. [x] **Project Scaffolding & Setup**: Inisialisasi Next.js 16 (App Router), Tailwind CSS v4, Lucide React, Zustand. (Selesai - Issue FE-01)
@@ -691,7 +693,7 @@ sequenceDiagram
    - `src/app/layout.tsx`: Root layout yang menggabungkan seluruh komponen layout global.
 5. **UI Views**:
    - [x] Beranda (`/`): Hero + Featured Collections + USP + Live Featured Products (`GET /api/v1/products/featured`). (Selesai - Issue FE-03)
-   - [ ] Katalog (`/catalog`): Filter kategori, sortir harga, grid produk. (Issue FE-04)
+   - [x] Katalog (`/catalog`): Grid responsif, filter kategori, search bar, sortir harga/terbaru, pagination, dan graceful fallback mock data. (Selesai - Issue FE-04)
    - [ ] Detail Produk (`/product/[slug]`): Swatch warna, tombol ukuran, live stock guard. (Issue FE-05)
    - [ ] Checkout Page (`/checkout`): Formulir alamat dan pemilihan metode pembayaran dasar. (Issue FE-07)
    - [ ] Success Page (`/checkout/success`): Menampilkan detail invoice order. (Issue FE-08)

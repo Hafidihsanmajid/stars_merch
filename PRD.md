@@ -281,7 +281,7 @@ Semua endpoint backend Laravel diawali dengan prefix `/api/v1/`.
 * [x] **Issue BE-02**: Pembuatan migration database (`categories`, `products`, `product_images`, `product_variants`, `orders`, `order_items`).
 * [x] **Issue BE-03**: Pembuatan Database Seeder dengan sampel produk pakaian Stars Merch (kaos, hoodie, varian ukuran & warna).
 * [x] **Issue BE-04**: Implementasi Controller & Resource untuk Product Catalog & Detail API.
-* [ ] **Issue BE-05**: Implementasi Checkout Controller dengan validasi stok atomik via DB Transaction.
+* [x] **Issue BE-05**: Implementasi Checkout Controller dengan validasi stok atomik via DB Transaction.
 
 ### Milestone 2: Frontend Foundation & UI Setup (Next.js + Tailwind)
 * [x] **Issue FE-01**: Inisialisasi proyek Next.js dengan Tailwind CSS dan Lucide React.
@@ -289,7 +289,7 @@ Semua endpoint backend Laravel diawali dengan prefix `/api/v1/`.
 * [x] **Issue FE-03**: Implementasi Halaman Utama (Hero Section, Value Proposition, Featured Collections).
 
 ### Milestone 3: Catalog & Product Detail Integration
-* [ ] **Issue FE-04**: Halaman Katalog Pakaian (Grid Produk, Filter Kategori, Sorting).
+* [x] **Issue FE-04**: Halaman Katalog Pakaian (Grid Produk, Filter Kategori, Sorting).
 * [ ] **Issue FE-05**: Halaman Detail Produk (Galeri gambar, Pemilih Ukuran & Warna, Stok real-time, Tombol Tambah ke Keranjang).
 
 ### Milestone 4: Cart & Checkout Flow
@@ -338,3 +338,18 @@ Semua endpoint backend Laravel diawali dengan prefix `/api/v1/`.
    - Menambahkan konfigurasi remote patterns `images.unsplash.com` di `next.config.ts`.
 3. **Resilient Data Fetching**:
    - Komponen `FeaturedProducts` mengintegrasikan API client `api.products.getFeatured()` dengan UI skeleton loading dan error/empty fallback handling.
+
+#### E. Backend (Issue BE-05)
+1. **Validasi Keranjang & Transaksi Atomik Checkout**:
+   - Diimplementasikan `CartValidationController` (`POST /api/v1/cart/validate`) dengan `ValidateCartRequest`.
+   - Diimplementasikan `CheckoutController` (`POST /api/v1/checkout`, `GET /api/v1/orders/{order_number}`) dengan `CheckoutRequest`.
+   - Menggunakan `DB::transaction` untuk memastikan pembuatan invoice order, item pesanan, dan pemotongan stok varian (`decrement`) dieksekusi secara atomik untuk mencegah *race condition*.
+2. **Feature Tests**:
+   - Dibuat `tests/Feature/CheckoutApiTest.php` mencakup validasi stok, error handling 422, atomisitas checkout, dan tracking pesanan publik (7 passed).
+
+#### F. Frontend (Issue FE-04)
+1. **Halaman Katalog Komprehensif (`src/app/catalog/page.tsx`)**:
+   - Menghadirkan layout grid produk responsif (4 kolom desktop, 2 kolom mobile).
+   - Fitur filter tab kategori dinamis, pencarian instan (*search input*), dan dropdown pengurutan (*sorting* harga & terbaru).
+2. **Graceful Fallback & Mock Dataset**:
+   - Penambahan `src/lib/mockData.ts` dan logic fallback pada `src/lib/api.ts` agar halaman katalog tetap berfungsi dan menampilkan data estetis ketika backend sedang offline.
