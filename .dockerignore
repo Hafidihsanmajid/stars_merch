@@ -1,0 +1,74 @@
+# ==========================================
+# Root .dockerignore for Stars Merch
+# ==========================================
+
+# Dependency directories
+node_modules/
+**/node_modules/
+vendor/
+**/vendor/
+
+# Next.js build artifacts and cache
+.next/
+**/.next/
+out/
+**/out/
+.turbo/
+**/.turbo/
+build/
+**/build/
+dist/
+**/dist/
+
+# TypeScript build info
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# Environment and sensitive credential files
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+**/*.env
+!.env.example
+
+# Version control and git files
+.git/
+**/.git/
+.gitignore
+.gitattributes
+
+# Debug logs and npm/yarn caches
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+
+# Laravel specific cache, logs, and database files
+backend/storage/logs/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/tests/
+backend/phpunit.xml
+backend/.phpunit.result.cache
+database/*.sqlite
+backend/database/*.sqlite
+
+# IDE, OS, and editor junk files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# Documentation and project planning files
+*.md
+!README.md

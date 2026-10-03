@@ -1,0 +1,38 @@
+# Dependencies and package managers
+vendor/
+node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Development, tests, and CI/CD caches
+tests/
+phpunit.xml
+.phpunit.result.cache
+
+# Application logs and runtime caches
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+
+# VCS, IDE, and OS junk files
+.git/
+.gitignore
+.gitattributes
+.editorconfig
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
+
+# Documentation and frontend dev files not needed in backend
+README.md
+package.json
+package-lock.json
+vite.config.js
+Dockerfile
+.dockerignore
